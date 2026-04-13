@@ -68,9 +68,10 @@ export default function App() {
         setEntries((prev) => [entry, ...prev]);
         setActiveTab("dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting entry:", error);
-      alert("Erro ao enviar para o Google Sheets. Verifique a configuração.");
+      const serverError = error.response?.data?.error || "Erro desconhecido";
+      alert(`Erro no Google Sheets: ${serverError}\n\nVerifique se o e-mail da Conta de Serviço foi adicionado como Editor na planilha.`);
     }
   };
 

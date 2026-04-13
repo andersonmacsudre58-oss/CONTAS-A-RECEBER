@@ -39,13 +39,15 @@ async function startServer() {
   app.post("/api/sheets/append", async (req, res) => {
     try {
       if (!spreadsheetId) {
-        return res.status(500).json({ error: "GOOGLE_SHEETS_ID not configured" });
+        return res.status(500).json({ error: "GOOGLE_SHEETS_ID não configurado nos Secrets." });
       }
 
-      const { values } = req.body; // Array of values
+      const { values } = req.body;
+      
+      // Usar apenas "A:L" permite que o Google use a primeira aba ativa por padrão
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "Sheet1!A:L",
+        range: "A:L",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -54,8 +56,9 @@ async function startServer() {
 
       res.json({ success: true, data: response.data });
     } catch (error: any) {
-      console.error("Sheets Append Error:", error);
-      res.status(500).json({ error: error.message });
+      console.error("Sheets Append Error:", error.response?.data || error.message);
+      const detail = error.response?.data?.error?.message || error.message;
+      res.status(500).json({ error: detail });
     }
   });
 
