@@ -13,10 +13,17 @@ async function startServer() {
   app.use(express.json());
 
   // Google Sheets Auth
+  const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
+  const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY;
+
+  if (!clientEmail || !privateKey) {
+    console.warn("AVISO: Credenciais do Google Sheets não configuradas. As rotas de API podem falhar.");
+  }
+
   const auth = new google.auth.GoogleAuth({
     credentials: {
-      client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      client_email: clientEmail,
+      private_key: privateKey?.replace(/\\n/g, "\n"),
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
