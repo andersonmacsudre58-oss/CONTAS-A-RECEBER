@@ -1,0 +1,8 @@
+{
+  "name": "Contas a Receber",
+  "description": "Plataforma de lançamentos de dados financeiros com integração ao Google Sheets e escaneamento mobile.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
