@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import React from "react";
 import { FinancialEntry, FONTE_OPTIONS, CUSTEIO_OPTIONS } from "../types";
-import { Camera, Send, Loader2 } from "lucide-react";
+import { Camera, Send, Loader2, ScanLine, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
+import axios from "axios";
 
 interface EntryFormProps {
   onSubmit: (entry: FinancialEntry) => Promise<void>;
@@ -14,6 +15,8 @@ interface EntryFormProps {
 
 export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initialData, onCancel }: EntryFormProps) {
   const [loading, setLoading] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FinancialEntry>(initialData || {
     faturadasERecebidas: "",
     processo: "",
@@ -74,11 +77,76 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
     }
   };
 
+  const handleDigitalize = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        setIsExtracting(true);
+        const base64Image = e.target?.result as string;
+        
+        const response = await axios.post("/api/ocr/extract", { image: base64Image });
+        if (response.data.success) {
+          const extracted = response.data.data;
+          setFormData(prev => ({
+            ...prev,
+            ...extracted,
+            // Ensure numbers are numbers
+            valorRecebido: parseFloat(extracted.valorRecebido) || 0,
+            glosa: parseFloat(extracted.glosa) || 0,
+            saldoAReceber: parseFloat(extracted.saldoAReceber) || 0,
+          }));
+          alert("Dados extraídos com sucesso pela IA!");
+        }
+      } catch (error) {
+        console.error("Erro na extração IA:", error);
+        alert("Não foi possível extrair os dados automaticamente. Tente uma foto mais nítida.");
+      } finally {
+        setIsExtracting(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const inputClasses = "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 outline-none";
   const labelClasses = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Informações do Recebimento</h3>
+          <p className="text-sm text-slate-500">Preencha manualmente ou use a IA para digitalizar.</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleDigitalize} 
+            accept="image/*" 
+            capture="environment" 
+            className="hidden" 
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isExtracting}
+            className="flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-600 transition-all hover:bg-indigo-100 active:scale-95 disabled:opacity-50"
+          >
+            {isExtracting ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Sparkles size={18} />
+            )}
+            {isExtracting ? "Digitalizando..." : "Digitalizar Documento"}
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Faturadas e Recebidas */}
         <div>

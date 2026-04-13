@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { google } from "googleapis";
 import dotenv from "dotenv";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
@@ -10,7 +11,11 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: "10mb" }));
+
+  // Gemini Setup
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   // Google Sheets Auth
   const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
@@ -112,8 +117,7 @@ async function startServer() {
       }
 
       const { row } = req.params;
-      const rowIndex = parseInt(row) - 1; // Google Sheets API uses 0-based index for clear/delete
-
+      
       // Clearing the row is safer than deleting (which shifts rows and breaks index references)
       await sheets.spreadsheets.values.clear({
         spreadsheetId,
@@ -124,6 +128,52 @@ async function startServer() {
     } catch (error: any) {
       console.error("Sheets Delete Error:", error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/ocr/extract", async (req, res) => {
+    try {
+      const { image } = req.body; // base64 image
+      if (!image) return res.status(400).json({ error: "Imagem não fornecida" });
+
+      const prompt = `
+        Analise esta imagem de um documento financeiro (fatura, recibo, nota) e extraia os seguintes campos em formato JSON.
+        Se não encontrar um campo, deixe-o vazio ou como 0 para números.
+        
+        Campos:
+        1. faturadasERecebidas (ex: "Faturada" ou "Recebida")
+        2. processo (número do processo)
+        3. unidadeSaude (nome da unidade)
+        4. dataRecebimento (formato YYYY-MM-DD)
+        5. valorRecebido (número)
+        6. fonte (ex: "Federal" ou "Estadual")
+        7. tipoCusteio (ex: "Regular" ou "Extraordinário")
+        8. mesFatura (nome do mês)
+        9. conta (número da conta)
+        10. glosa (valor numérico)
+        11. saldoAReceber (valor numérico)
+
+        Retorne APENAS o JSON puro, sem blocos de código markdown.
+      `;
+
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: image.split(",")[1],
+            mimeType: "image/jpeg",
+          },
+        },
+      ]);
+
+      const text = result.response.text();
+      const cleanText = text.replace(/```json|```/g, "").trim();
+      const extractedData = JSON.parse(cleanText);
+
+      res.json({ success: true, data: extractedData });
+    } catch (error: any) {
+      console.error("OCR Error:", error);
+      res.status(500).json({ error: "Erro ao processar imagem com IA" });
     }
   });
 
