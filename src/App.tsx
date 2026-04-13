@@ -13,6 +13,9 @@ export default function App() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanningField, setScanningField] = useState<keyof FinancialEntry | null>(null);
   const [scannedData, setScannedData] = useState<{ field: keyof FinancialEntry; value: string } | undefined>();
+  const [editingEntry, setEditingEntry] = useState<FinancialEntry | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchEntries();
@@ -25,19 +28,22 @@ export default function App() {
         // Skip header row if it exists
         const rows = response.data.data;
         if (rows.length > 0) {
-          const formatted = rows.slice(1).map((row: any[]) => ({
-            faturadasERecebidas: row[0],
-            processo: row[1],
-            unidadeSaude: row[2],
-            dataRecebimento: row[3],
-            valorRecebido: parseFloat(row[4]) || 0,
-            fonte: row[5],
-            tipoCusteio: row[6],
-            mesFatura: row[7],
-            conta: row[8],
-            glosa: parseFloat(row[9]) || 0,
-            saldoAReceber: parseFloat(row[10]) || 0,
-          }));
+          const formatted = rows.slice(1)
+            .map((row: any[], index: number) => ({
+              rowIndex: index + 2,
+              faturadasERecebidas: row[0],
+              processo: row[1],
+              unidadeSaude: row[2],
+              dataRecebimento: row[3],
+              valorRecebido: parseFloat(row[4]) || 0,
+              fonte: row[5],
+              tipoCusteio: row[6],
+              mesFatura: row[7],
+              conta: row[8],
+              glosa: parseFloat(row[9]) || 0,
+              saldoAReceber: parseFloat(row[10]) || 0,
+            }))
+            .filter(entry => entry.faturadasERecebidas || entry.processo || entry.unidadeSaude);
           setEntries(formatted);
         }
       }
@@ -63,11 +69,15 @@ export default function App() {
         new Date().toISOString(), // Timestamp
       ];
 
-      const response = await axios.post("/api/sheets/append", { values });
-      if (response.data.success) {
-        setEntries((prev) => [entry, ...prev]);
-        setActiveTab("dashboard");
+      if (editingEntry?.rowIndex) {
+        await axios.put(`/api/sheets/update/${editingEntry.rowIndex}`, { values });
+        setEditingEntry(null);
+      } else {
+        await axios.post("/api/sheets/append", { values });
       }
+      
+      fetchEntries();
+      setActiveTab("dashboard");
     } catch (error: any) {
       console.error("Error submitting entry:", error);
       const serverError = error.response?.data?.error || "Erro desconhecido";
@@ -80,6 +90,25 @@ export default function App() {
       setScannedData({ field: scanningField, value: data });
       setScannerOpen(false);
       setScanningField(null);
+    }
+  };
+
+  const handleEdit = (entry: FinancialEntry) => {
+    setEditingEntry(entry);
+    setActiveTab("form");
+  };
+
+  const handleDelete = async (rowIndex: number) => {
+    setIsDeleting(true);
+    try {
+      await axios.delete(`/api/sheets/delete/${rowIndex}`);
+      await fetchEntries();
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      alert("Erro ao excluir lançamento. Verifique os logs.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -96,7 +125,10 @@ export default function App() {
 
         <nav className="space-y-2">
           <button
-            onClick={() => setActiveTab("form")}
+            onClick={() => {
+              setActiveTab("form");
+              setEditingEntry(null);
+            }}
             className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
               activeTab === "form" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             }`}
@@ -114,17 +146,6 @@ export default function App() {
             Dashboard
           </button>
         </nav>
-
-        <div className="absolute bottom-6 left-6 right-6 space-y-2">
-          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all">
-            <Settings size={20} />
-            Configurações
-          </button>
-          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
-            <LogOut size={20} />
-            Sair
-          </button>
-        </div>
       </aside>
 
       {/* Mobile Header */}
@@ -191,6 +212,11 @@ export default function App() {
                   <EntryForm 
                     onSubmit={handleFormSubmit} 
                     scannedData={scannedData}
+                    initialData={editingEntry}
+                    onCancel={() => {
+                      setEditingEntry(null);
+                      setActiveTab("dashboard");
+                    }}
                     onOpenScanner={(field) => {
                       setScanningField(field);
                       setScannerOpen(true);
@@ -198,12 +224,49 @@ export default function App() {
                   />
                 </div>
               ) : (
-                <Dashboard entries={entries} />
+                <Dashboard 
+                  entries={entries} 
+                  onEdit={handleEdit}
+                  onDelete={(row) => setDeleteConfirm(row)}
+                  onRefresh={fetchEntries}
+                />
               )}
             </motion.div>
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <h3 className="text-lg font-bold text-gray-900">Confirmar Exclusão</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita na planilha.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirm)}
+                disabled={isDeleting}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? "Excluindo..." : "Sim, Excluir"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Scanner Modal */}
       {scannerOpen && (

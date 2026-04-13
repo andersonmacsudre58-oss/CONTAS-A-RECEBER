@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import { FinancialEntry, FONTE_OPTIONS, CUSTEIO_OPTIONS } from "../types";
 import { Camera, Send, Loader2 } from "lucide-react";
@@ -8,11 +8,13 @@ interface EntryFormProps {
   onSubmit: (entry: FinancialEntry) => Promise<void>;
   onOpenScanner: (field: keyof FinancialEntry) => void;
   scannedData?: { field: keyof FinancialEntry; value: string };
+  initialData?: FinancialEntry | null;
+  onCancel?: () => void;
 }
 
-export default function EntryForm({ onSubmit, onOpenScanner, scannedData }: EntryFormProps) {
+export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initialData, onCancel }: EntryFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FinancialEntry>({
+  const [formData, setFormData] = useState<FinancialEntry>(initialData || {
     faturadasERecebidas: "",
     processo: "",
     unidadeSaude: "",
@@ -25,6 +27,13 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData }: Entr
     glosa: 0,
     saldoAReceber: 0,
   });
+
+  // Update form when initialData changes (for editing)
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
 
   // Re-sync scanned data if it changes
   const [lastScanned, setLastScanned] = useState<string | null>(null);
@@ -242,7 +251,16 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData }: Entr
         </div>
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end gap-3 pt-4">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-xl border border-gray-200 bg-white px-8 py-3 font-semibold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+          >
+            Cancelar
+          </button>
+        )}
         <button
           type="submit"
           disabled={loading}
@@ -259,7 +277,7 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData }: Entr
           ) : (
             <>
               <Send size={20} />
-              Lançar Dados
+              {initialData ? "Salvar Alterações" : "Lançar Dados"}
             </>
           )}
         </button>

@@ -70,12 +70,59 @@ async function startServer() {
 
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: "Sheet1!A:L",
+        range: "A:L",
       });
 
       res.json({ success: true, data: response.data.values || [] });
     } catch (error: any) {
       console.error("Sheets Get Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/sheets/update/:row", async (req, res) => {
+    try {
+      if (!spreadsheetId) {
+        return res.status(500).json({ error: "GOOGLE_SHEETS_ID não configurado." });
+      }
+
+      const { row } = req.params;
+      const { values } = req.body;
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `A${row}:L${row}`,
+        valueInputOption: "USER_ENTERED",
+        requestBody: {
+          values: [values],
+        },
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Sheets Update Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/sheets/delete/:row", async (req, res) => {
+    try {
+      if (!spreadsheetId) {
+        return res.status(500).json({ error: "GOOGLE_SHEETS_ID não configurado." });
+      }
+
+      const { row } = req.params;
+      const rowIndex = parseInt(row) - 1; // Google Sheets API uses 0-based index for clear/delete
+
+      // Clearing the row is safer than deleting (which shifts rows and breaks index references)
+      await sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: `A${row}:L${row}`,
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Sheets Delete Error:", error);
       res.status(500).json({ error: error.message });
     }
   });

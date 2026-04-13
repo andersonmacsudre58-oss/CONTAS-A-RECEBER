@@ -1,4 +1,5 @@
 export interface FinancialEntry {
+  rowIndex?: number;
   faturadasERecebidas: string;
   processo: string;
   unidadeSaude: string;
