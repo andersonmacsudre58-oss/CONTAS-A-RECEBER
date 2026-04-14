@@ -31,19 +31,24 @@ export default function App() {
           const formatted = rows.slice(1)
             .map((row: any[], index: number) => ({
               rowIndex: index + 2,
-              faturadasERecebidas: row[0],
-              processo: row[1],
-              unidadeSaude: row[2],
-              dataRecebimento: row[3],
-              valorRecebido: parseFloat(row[4]) || 0,
-              fonte: row[5],
-              tipoCusteio: row[6],
-              mesFatura: row[7],
-              conta: row[8],
-              glosa: parseFloat(row[9]) || 0,
+              processo: row[0],
+              id: row[1],
+              taxa3: row[2],
+              fonte: row[3],
+              custeio: row[4],
+              conta: row[5],
+              glosa: parseFloat(row[6]) || 0,
+              valorFaturado: parseFloat(row[7]) || 0,
+              dataRecebimento: row[8],
+              valorRecebido: parseFloat(row[9]) || 0,
               saldoAReceber: parseFloat(row[10]) || 0,
+              houveParcela: row[11],
+              dataRecebimento2: row[12],
+              valorRecebido2: parseFloat(row[13]) || 0,
+              dataRecebimento3: row[14],
+              valorRecebido3: parseFloat(row[15]) || 0,
             }))
-            .filter(entry => entry.faturadasERecebidas || entry.processo || entry.unidadeSaude);
+            .filter(entry => entry.processo || entry.id);
           setEntries(formatted);
         }
       }
@@ -55,17 +60,22 @@ export default function App() {
   const handleFormSubmit = async (entry: FinancialEntry) => {
     try {
       const values = [
-        entry.faturadasERecebidas,
         entry.processo,
-        entry.unidadeSaude,
-        entry.dataRecebimento,
-        entry.valorRecebido,
+        entry.id,
+        entry.taxa3,
         entry.fonte,
-        entry.tipoCusteio,
-        entry.mesFatura,
+        entry.custeio,
         entry.conta,
         entry.glosa,
+        entry.valorFaturado,
+        entry.dataRecebimento,
+        entry.valorRecebido,
         entry.saldoAReceber,
+        entry.houveParcela,
+        entry.dataRecebimento2 || "",
+        entry.valorRecebido2 || 0,
+        entry.dataRecebimento3 || "",
+        entry.valorRecebido3 || 0,
         new Date().toISOString(), // Timestamp
       ];
 

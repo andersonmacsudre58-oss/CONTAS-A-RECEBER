@@ -39,17 +39,22 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
         if (confirm(`Deseja restaurar ${backupData.length} lançamentos? Isso adicionará os dados à planilha atual.`)) {
           for (const entry of backupData) {
             const values = [
-              entry.faturadasERecebidas,
               entry.processo,
-              entry.unidadeSaude,
-              entry.dataRecebimento,
-              entry.valorRecebido,
+              entry.id,
+              entry.taxa3,
               entry.fonte,
-              entry.tipoCusteio,
-              entry.mesFatura,
+              entry.custeio,
               entry.conta,
               entry.glosa,
+              entry.valorFaturado,
+              entry.dataRecebimento,
+              entry.valorRecebido,
               entry.saldoAReceber,
+              entry.houveParcela,
+              entry.dataRecebimento2 || "",
+              entry.valorRecebido2 || 0,
+              entry.dataRecebimento3 || "",
+              entry.valorRecebido3 || 0,
               new Date().toISOString(),
             ];
             await axios.post("/api/sheets/append", { values });
@@ -152,14 +157,15 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
               <tr>
-                <th className="px-6 py-4">Faturada/Recebida</th>
                 <th className="px-6 py-4">Processo</th>
-                <th className="px-6 py-4">Unidade</th>
-                <th className="px-6 py-4">Data</th>
-                <th className="px-6 py-4">Valor</th>
+                <th className="px-6 py-4">ID</th>
+                <th className="px-6 py-4">Taxa 3%</th>
                 <th className="px-6 py-4">Fonte</th>
                 <th className="px-6 py-4">Custeio</th>
+                <th className="px-6 py-4">Vlr Faturado</th>
+                <th className="px-6 py-4">Vlr Recebido</th>
                 <th className="px-6 py-4">Saldo</th>
+                <th className="px-6 py-4">Parcela?</th>
                 <th className="px-6 py-4 text-center">Ações</th>
               </tr>
             </thead>
@@ -168,27 +174,28 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                 filteredEntries.map((entry, idx) => (
                   <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                     <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
-                      {entry.faturadasERecebidas}
+                      {entry.processo}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.processo}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.unidadeSaude}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.id}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">
-                      {entry.dataRecebimento ? new Date(entry.dataRecebimento).toLocaleDateString("pt-BR") : "-"}
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        entry.taxa3 === "Sim" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                      }`}>
+                        {entry.taxa3}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.custeio}</td>
+                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600">
+                      {formatCurrency(entry.valorFaturado)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 font-semibold text-green-600">
                       {formatCurrency(entry.valorRecebido)}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        entry.fonte === "Federal" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
-                      }`}>
-                        {entry.fonte}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoCusteio}</td>
                     <td className="whitespace-nowrap px-6 py-4 font-semibold text-red-600">
                       {formatCurrency(entry.saldoAReceber)}
                     </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela}</td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button

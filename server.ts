@@ -49,10 +49,10 @@ async function startServer() {
 
       const { values } = req.body;
       
-      // Usar apenas "A:L" permite que o Google use a primeira aba ativa por padrão
+      // Usar apenas "A:Q" permite que o Google use a primeira aba ativa por padrão
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "A:L",
+        range: "A:Q",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -75,7 +75,7 @@ async function startServer() {
 
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: "A:L",
+        range: "A:Q",
       });
 
       res.json({ success: true, data: response.data.values || [] });
@@ -96,7 +96,7 @@ async function startServer() {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `A${row}:L${row}`,
+        range: `A${row}:Q${row}`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -121,7 +121,7 @@ async function startServer() {
       // Clearing the row is safer than deleting (which shifts rows and breaks index references)
       await sheets.spreadsheets.values.clear({
         spreadsheetId,
-        range: `A${row}:L${row}`,
+        range: `A${row}:Q${row}`,
       });
 
       res.json({ success: true });
@@ -141,17 +141,22 @@ async function startServer() {
         Se não encontrar um campo, deixe-o vazio ou como 0 para números.
         
         Campos:
-        1. faturadasERecebidas (ex: "Faturada" ou "Recebida")
-        2. processo (número do processo)
-        3. unidadeSaude (nome da unidade)
-        4. dataRecebimento (formato YYYY-MM-DD)
-        5. valorRecebido (número)
-        6. fonte (ex: "Federal" ou "Estadual")
-        7. tipoCusteio (ex: "Regular" ou "Extraordinário")
-        8. mesFatura (nome do mês)
-        9. conta (número da conta)
-        10. glosa (valor numérico)
+        1. processo (número do processo)
+        2. id (identificador do documento)
+        3. taxa3 (ex: "Sim" ou "Não")
+        4. fonte (ex: "Federal" ou "Estadual")
+        5. custeio (ex: "Regular", "Investimento", "Mutirão", "Global", "Acordo Coletivo")
+        6. conta (número da conta)
+        7. glosa (valor numérico)
+        8. valorFaturado (valor numérico)
+        9. dataRecebimento (formato YYYY-MM-DD)
+        10. valorRecebido (número)
         11. saldoAReceber (valor numérico)
+        12. houveParcela (ex: "Sim" ou "Não")
+        13. dataRecebimento2 (formato YYYY-MM-DD)
+        14. valorRecebido2 (número)
+        15. dataRecebimento3 (formato YYYY-MM-DD)
+        16. valorRecebido3 (número)
 
         Retorne APENAS o JSON puro, sem blocos de código markdown.
       `;

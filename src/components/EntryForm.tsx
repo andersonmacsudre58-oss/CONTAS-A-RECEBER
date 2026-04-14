@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
-import { FinancialEntry, FONTE_OPTIONS, CUSTEIO_OPTIONS } from "../types";
+import { FinancialEntry, FONTE_OPTIONS, CUSTEIO_OPTIONS, SIM_NAO_OPTIONS } from "../types";
 import { Camera, Send, Loader2, ScanLine, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
@@ -18,17 +18,22 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
   const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FinancialEntry>(initialData || {
-    faturadasERecebidas: "",
     processo: "",
-    unidadeSaude: "",
-    dataRecebimento: new Date().toISOString().split("T")[0],
-    valorRecebido: 0,
+    id: "",
+    taxa3: "Não",
     fonte: "Estadual",
-    tipoCusteio: "Regular",
-    mesFatura: "",
+    custeio: "Regular",
     conta: "",
     glosa: 0,
+    valorFaturado: 0,
+    dataRecebimento: new Date().toISOString().split("T")[0],
+    valorRecebido: 0,
     saldoAReceber: 0,
+    houveParcela: "Não",
+    dataRecebimento2: "",
+    valorRecebido2: 0,
+    dataRecebimento3: "",
+    valorRecebido3: 0,
   });
 
   // Update form when initialData changes (for editing)
@@ -60,17 +65,22 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
       await onSubmit(formData);
       // Reset form or show success
       setFormData({
-        faturadasERecebidas: "",
         processo: "",
-        unidadeSaude: "",
-        dataRecebimento: new Date().toISOString().split("T")[0],
-        valorRecebido: 0,
+        id: "",
+        taxa3: "Não",
         fonte: "Estadual",
-        tipoCusteio: "Regular",
-        mesFatura: "",
+        custeio: "Regular",
         conta: "",
         glosa: 0,
+        valorFaturado: 0,
+        dataRecebimento: new Date().toISOString().split("T")[0],
+        valorRecebido: 0,
         saldoAReceber: 0,
+        houveParcela: "Não",
+        dataRecebimento2: "",
+        valorRecebido2: 0,
+        dataRecebimento3: "",
+        valorRecebido3: 0,
       });
     } finally {
       setLoading(false);
@@ -97,6 +107,9 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
             valorRecebido: parseFloat(extracted.valorRecebido) || 0,
             glosa: parseFloat(extracted.glosa) || 0,
             saldoAReceber: parseFloat(extracted.saldoAReceber) || 0,
+            valorFaturado: parseFloat(extracted.valorFaturado) || 0,
+            valorRecebido2: parseFloat(extracted.valorRecebido2) || 0,
+            valorRecebido3: parseFloat(extracted.valorRecebido3) || 0,
           }));
           alert("Dados extraídos com sucesso pela IA!");
         }
@@ -148,29 +161,6 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Faturadas e Recebidas */}
-        <div>
-          <label className={labelClasses}>Faturadas e Recebidas</label>
-          <div className="relative">
-            <input
-              type="text"
-              name="faturadasERecebidas"
-              value={formData.faturadasERecebidas}
-              onChange={handleChange}
-              className={inputClasses}
-              placeholder="Ex: FAT-2024-001"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => onOpenScanner("faturadasERecebidas")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-500"
-            >
-              <Camera size={18} />
-            </button>
-          </div>
-        </div>
-
         {/* Processo */}
         <div>
           <label className={labelClasses}>Processo</label>
@@ -194,16 +184,102 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
           </div>
         </div>
 
-        {/* Unidade de Saúde */}
+        {/* ID */}
         <div>
-          <label className={labelClasses}>Unidade de Saúde</label>
+          <label className={labelClasses}>ID</label>
           <input
             type="text"
-            name="unidadeSaude"
-            value={formData.unidadeSaude}
+            name="id"
+            value={formData.id}
             onChange={handleChange}
             className={inputClasses}
-            placeholder="Nome da Unidade"
+            placeholder="Identificador"
+            required
+          />
+        </div>
+
+        {/* Taxa 3% */}
+        <div>
+          <label className={labelClasses}>Taxa 3%</label>
+          <select
+            name="taxa3"
+            value={formData.taxa3}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {SIM_NAO_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Fonte */}
+        <div>
+          <label className={labelClasses}>Fonte</label>
+          <select
+            name="fonte"
+            value={formData.fonte}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {FONTE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Custeio */}
+        <div>
+          <label className={labelClasses}>Custeio</label>
+          <select
+            name="custeio"
+            value={formData.custeio}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {CUSTEIO_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Conta */}
+        <div>
+          <label className={labelClasses}>Conta</label>
+          <input
+            type="text"
+            name="conta"
+            value={formData.conta}
+            onChange={handleChange}
+            className={inputClasses}
+            placeholder="Nº da Conta"
+            required
+          />
+        </div>
+
+        {/* Glosa */}
+        <div>
+          <label className={labelClasses}>Glosa (R$)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="glosa"
+            value={formData.glosa}
+            onChange={handleChange}
+            className={inputClasses}
+          />
+        </div>
+
+        {/* Valor Faturado */}
+        <div>
+          <label className={labelClasses}>Valor Faturado (R$)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="valorFaturado"
+            value={formData.valorFaturado}
+            onChange={handleChange}
+            className={inputClasses}
             required
           />
         </div>
@@ -235,76 +311,6 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
           />
         </div>
 
-        {/* Fonte */}
-        <div>
-          <label className={labelClasses}>Fonte</label>
-          <select
-            name="fonte"
-            value={formData.fonte}
-            onChange={handleChange}
-            className={inputClasses}
-          >
-            {FONTE_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Tipo de Custeio */}
-        <div>
-          <label className={labelClasses}>Tipo de Custeio</label>
-          <select
-            name="tipoCusteio"
-            value={formData.tipoCusteio}
-            onChange={handleChange}
-            className={inputClasses}
-          >
-            {CUSTEIO_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Mês da Fatura */}
-        <div>
-          <label className={labelClasses}>Mês da Fatura</label>
-          <input
-            type="month"
-            name="mesFatura"
-            value={formData.mesFatura}
-            onChange={handleChange}
-            className={inputClasses}
-            required
-          />
-        </div>
-
-        {/* Conta */}
-        <div>
-          <label className={labelClasses}>Conta</label>
-          <input
-            type="text"
-            name="conta"
-            value={formData.conta}
-            onChange={handleChange}
-            className={inputClasses}
-            placeholder="Nº da Conta"
-            required
-          />
-        </div>
-
-        {/* Glosa */}
-        <div>
-          <label className={labelClasses}>Glosa (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            name="glosa"
-            value={formData.glosa}
-            onChange={handleChange}
-            className={inputClasses}
-          />
-        </div>
-
         {/* Saldo a Receber */}
         <div>
           <label className={labelClasses}>Saldo a Receber (R$)</label>
@@ -317,6 +323,69 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
             className={inputClasses}
           />
         </div>
+
+        {/* Houve Parcela? */}
+        <div>
+          <label className={labelClasses}>Houve Parcela?</label>
+          <select
+            name="houveParcela"
+            value={formData.houveParcela}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {SIM_NAO_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Conditional Fields for Installments */}
+        {formData.houveParcela === "Sim" && (
+          <>
+            <div>
+              <label className={labelClasses}>Data Recebimento 2ª Parcela</label>
+              <input
+                type="date"
+                name="dataRecebimento2"
+                value={formData.dataRecebimento2}
+                onChange={handleChange}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className={labelClasses}>Valor Recebido 2ª Parcela (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                name="valorRecebido2"
+                value={formData.valorRecebido2}
+                onChange={handleChange}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className={labelClasses}>Data Recebimento 3ª Parcela</label>
+              <input
+                type="date"
+                name="dataRecebimento3"
+                value={formData.dataRecebimento3}
+                onChange={handleChange}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className={labelClasses}>Valor Recebido 3ª Parcela (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                name="valorRecebido3"
+                value={formData.valorRecebido3}
+                onChange={handleChange}
+                className={inputClasses}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
