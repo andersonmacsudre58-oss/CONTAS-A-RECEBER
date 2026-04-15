@@ -47,6 +47,8 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
               entry.dataRecebimento,
               entry.valorRecebido,
               entry.saldoAReceber,
+              entry.fonte,
+              entry.tipoCusteio,
               entry.houveParcela,
               entry.quantidadeParcelas || 1,
               entry.dataRecebimento2 || "",
@@ -73,41 +75,6 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
       }
     };
     reader.readAsText(file);
-  };
-
-  const handleSetupSheet = async () => {
-    try {
-      const headers = [
-        "Processo",
-        "ID",
-        "Taxa 3%",
-        "Glosa",
-        "Valor Faturado",
-        "Data do Recebimento",
-        "Valor Recebido",
-        "Saldo a Receber",
-        "Houve Parcela?",
-        "Qtd Parcelas",
-        "Data Recebimento 2ª Parcela",
-        "Valor Recebido 2ª Parcela",
-        "Data Recebimento 3ª Parcela",
-        "Valor Recebido 3ª Parcela",
-        "Data Recebimento 4ª Parcela",
-        "Valor Recebido 4ª Parcela",
-        "Data Recebimento 5ª Parcela",
-        "Valor Recebido 5ª Parcela",
-        "Data/Hora do Lançamento"
-      ];
-      
-      if (confirm("Deseja configurar os cabeçalhos da planilha? Isso substituirá a primeira linha.")) {
-        await axios.put("/api/sheets/update/1", { values: headers });
-        alert("Planilha configurada com sucesso!");
-        await onRefresh();
-      }
-    } catch (error) {
-      console.error("Erro ao configurar planilha:", error);
-      alert("Erro ao configurar os cabeçalhos. Verifique a conexão.");
-    }
   };
 
   const handleExportExcel = () => {
@@ -160,14 +127,6 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
               {isRestoring ? "Restaurando..." : "Restaurar"}
             </button>
             <button
-              onClick={handleSetupSheet}
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-              title="Configurar cabeçalhos na planilha"
-            >
-              <FileSpreadsheet size={14} className="text-blue-600" />
-              Configurar Planilha
-            </button>
-            <button
               onClick={handleExportExcel}
               className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
               title="Exportar para Excel"
@@ -210,6 +169,8 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                 <th className="px-6 py-4">Data</th>
                 <th className="px-6 py-4">Vlr Recebido</th>
                 <th className="px-6 py-4">Saldo</th>
+                <th className="px-6 py-4">Fonte</th>
+                <th className="px-6 py-4">Custeio</th>
                 <th className="px-6 py-4">Parcela?</th>
                 <th className="px-6 py-4">Qtd</th>
                 <th className="px-6 py-4 text-center">Ações</th>
@@ -243,6 +204,8 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                     <td className="whitespace-nowrap px-6 py-4 font-semibold text-red-600">
                       {formatCurrency(entry.saldoAReceber)}
                     </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoCusteio}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela === "Sim" ? entry.quantidadeParcelas : "-"}</td>
                     <td className="whitespace-nowrap px-6 py-4">
@@ -267,7 +230,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                 ))
               ) : (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
                     Nenhum lançamento encontrado.
                   </td>
                 </tr>

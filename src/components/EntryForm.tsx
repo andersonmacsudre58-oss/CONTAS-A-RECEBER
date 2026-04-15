@@ -1,19 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
-import { FinancialEntry, SIM_NAO_OPTIONS } from "../types";
-import { Camera, Send } from "lucide-react";
+import { FinancialEntry, SIM_NAO_OPTIONS, FONTE_OPTIONS, CUSTEIO_OPTIONS } from "../types";
+import { Send } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
 
 interface EntryFormProps {
   onSubmit: (entry: FinancialEntry) => Promise<void>;
-  onOpenScanner: (field: keyof FinancialEntry) => void;
-  scannedData?: { field: keyof FinancialEntry; value: string };
   initialData?: FinancialEntry | null;
   onCancel?: () => void;
 }
 
-export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initialData, onCancel }: EntryFormProps) {
+export default function EntryForm({ onSubmit, initialData, onCancel }: EntryFormProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FinancialEntry>(initialData || {
     processo: "",
@@ -24,6 +22,8 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
     dataRecebimento: new Date().toISOString().split("T")[0],
     valorRecebido: 0,
     saldoAReceber: 0,
+    fonte: "SES",
+    tipoCusteio: "CUSTEIO REGULAR",
     houveParcela: "Não",
     quantidadeParcelas: 1,
     dataRecebimento2: "",
@@ -42,13 +42,6 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
       setFormData(initialData);
     }
   }, [initialData]);
-
-  // Re-sync scanned data if it changes
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
-  if (scannedData && scannedData.value !== lastScanned) {
-    setFormData(prev => ({ ...prev, [scannedData.field]: scannedData.value }));
-    setLastScanned(scannedData.value);
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -73,6 +66,8 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
         dataRecebimento: new Date().toISOString().split("T")[0],
         valorRecebido: 0,
         saldoAReceber: 0,
+        fonte: "SES",
+        tipoCusteio: "CUSTEIO REGULAR",
         houveParcela: "Não",
         quantidadeParcelas: 1,
         dataRecebimento2: "",
@@ -105,24 +100,15 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
         {/* Processo */}
         <div>
           <label className={labelClasses}>Processo</label>
-          <div className="relative">
-            <input
-              type="text"
-              name="processo"
-              value={formData.processo}
-              onChange={handleChange}
-              className={inputClasses}
-              placeholder="Nº do Processo"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => onOpenScanner("processo")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-500"
-            >
-              <Camera size={18} />
-            </button>
-          </div>
+          <input
+            type="text"
+            name="processo"
+            value={formData.processo}
+            onChange={handleChange}
+            className={inputClasses}
+            placeholder="Nº do Processo"
+            required
+          />
         </div>
 
         {/* ID */}
@@ -219,6 +205,36 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
             onChange={handleChange}
             className={inputClasses}
           />
+        </div>
+
+        {/* Fonte */}
+        <div>
+          <label className={labelClasses}>Fonte</label>
+          <select
+            name="fonte"
+            value={formData.fonte}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {FONTE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Tipo de Custeio */}
+        <div>
+          <label className={labelClasses}>Tipo de Custeio</label>
+          <select
+            name="tipoCusteio"
+            value={formData.tipoCusteio}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {CUSTEIO_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
         </div>
 
         {/* Houve Parcela? */}

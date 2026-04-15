@@ -44,10 +44,10 @@ async function startServer() {
 
       const { values } = req.body;
       
-      // Usar apenas "A:R" permite que o Google use a primeira aba ativa por padrão
+      // Usar apenas "A:U" para acomodar as novas colunas
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "A:R",
+        range: "A:U",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -70,7 +70,7 @@ async function startServer() {
 
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: "A:R",
+        range: "A:U",
       });
 
       res.json({ success: true, data: response.data.values || [] });
@@ -91,7 +91,7 @@ async function startServer() {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `A${row}:R${row}`,
+        range: `A${row}:U${row}`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -116,7 +116,7 @@ async function startServer() {
       // Clearing the row is safer than deleting (which shifts rows and breaks index references)
       await sheets.spreadsheets.values.clear({
         spreadsheetId,
-        range: `A${row}:R${row}`,
+        range: `A${row}:U${row}`,
       });
 
       res.json({ success: true });

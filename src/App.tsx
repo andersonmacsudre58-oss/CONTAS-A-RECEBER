@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { FinancialEntry } from "./types";
 import EntryForm from "./components/EntryForm";
 import Dashboard from "./components/Dashboard";
-import Scanner from "./components/Scanner";
 import { Wallet, LayoutDashboard, PlusCircle, Settings, LogOut, Bell } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "motion/react";
@@ -10,9 +9,6 @@ import { motion, AnimatePresence } from "motion/react";
 export default function App() {
   const [entries, setEntries] = useState<FinancialEntry[]>([]);
   const [activeTab, setActiveTab] = useState<"form" | "dashboard">("form");
-  const [scannerOpen, setScannerOpen] = useState(false);
-  const [scanningField, setScanningField] = useState<keyof FinancialEntry | null>(null);
-  const [scannedData, setScannedData] = useState<{ field: keyof FinancialEntry; value: string } | undefined>();
   const [editingEntry, setEditingEntry] = useState<FinancialEntry | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -39,16 +35,18 @@ export default function App() {
               dataRecebimento: row[5],
               valorRecebido: parseFloat(row[6]) || 0,
               saldoAReceber: parseFloat(row[7]) || 0,
-              houveParcela: row[8],
-              quantidadeParcelas: parseInt(row[9]) || 1,
-              dataRecebimento2: row[10],
-              valorRecebido2: parseFloat(row[11]) || 0,
-              dataRecebimento3: row[12],
-              valorRecebido3: parseFloat(row[13]) || 0,
-              dataRecebimento4: row[14],
-              valorRecebido4: parseFloat(row[15]) || 0,
-              dataRecebimento5: row[16],
-              valorRecebido5: parseFloat(row[17]) || 0,
+              fonte: row[8],
+              tipoCusteio: row[9],
+              houveParcela: row[10],
+              quantidadeParcelas: parseInt(row[11]) || 1,
+              dataRecebimento2: row[12],
+              valorRecebido2: parseFloat(row[13]) || 0,
+              dataRecebimento3: row[14],
+              valorRecebido3: parseFloat(row[15]) || 0,
+              dataRecebimento4: row[16],
+              valorRecebido4: parseFloat(row[17]) || 0,
+              dataRecebimento5: row[18],
+              valorRecebido5: parseFloat(row[19]) || 0,
             }))
             .filter(entry => entry.processo || entry.id);
           setEntries(formatted);
@@ -70,6 +68,8 @@ export default function App() {
         entry.dataRecebimento,
         entry.valorRecebido,
         entry.saldoAReceber,
+        entry.fonte,
+        entry.tipoCusteio,
         entry.houveParcela,
         entry.quantidadeParcelas || 1,
         entry.dataRecebimento2 || "",
@@ -96,14 +96,6 @@ export default function App() {
       console.error("Error submitting entry:", error);
       const serverError = error.response?.data?.error || "Erro desconhecido";
       alert(`Erro no Google Sheets: ${serverError}\n\nVerifique se o e-mail da Conta de Serviço foi adicionado como Editor na planilha.`);
-    }
-  };
-
-  const handleScan = (data: string) => {
-    if (scanningField) {
-      setScannedData({ field: scanningField, value: data });
-      setScannerOpen(false);
-      setScanningField(null);
     }
   };
 
@@ -225,16 +217,11 @@ export default function App() {
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
                   <EntryForm 
                     onSubmit={handleFormSubmit} 
-                    scannedData={scannedData}
                     initialData={editingEntry}
                     onCancel={() => {
                       setEditingEntry(null);
                       setActiveTab("dashboard");
                     }}
-                    onOpenScanner={(field) => {
-                      setScanningField(field);
-                      setScannerOpen(true);
-                    }} 
                   />
                 </div>
               ) : (
@@ -280,17 +267,6 @@ export default function App() {
             </div>
           </motion.div>
         </div>
-      )}
-
-      {/* Scanner Modal */}
-      {scannerOpen && (
-        <Scanner 
-          onScan={handleScan} 
-          onClose={() => {
-            setScannerOpen(false);
-            setScanningField(null);
-          }} 
-        />
       )}
     </div>
   );

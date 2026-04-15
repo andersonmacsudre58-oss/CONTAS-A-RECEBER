@@ -8,6 +8,8 @@ export interface FinancialEntry {
   dataRecebimento: string;
   valorRecebido: number;
   saldoAReceber: number;
+  fonte: string;
+  tipoCusteio: string;
   houveParcela: "Sim" | "Não";
   quantidadeParcelas?: number;
   dataRecebimento2?: string;
@@ -21,3 +23,15 @@ export interface FinancialEntry {
 }
 
 export const SIM_NAO_OPTIONS = ["Não", "Sim"] as const;
+
+export const FONTE_OPTIONS = ["SES", "SEAP", "IPREV", "SEGEP", "SEMU", "EMAP"] as const;
+
+export const CUSTEIO_OPTIONS = [
+  "CUSTEIO REGULAR",
+  "TESTAGEM/COVID-19",
+  "PARCELA UNICA - INVESTIMENTO",
+  "MUTIRÃO",
+  "EMENDA PARLAMENTAR",
+  "AMBULATORIO",
+  "ACORDO COLETIVO"
+] as const;
