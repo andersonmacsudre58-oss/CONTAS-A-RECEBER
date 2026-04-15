@@ -9,6 +9,7 @@ export interface FinancialEntry {
   valorRecebido: number;
   saldoAReceber: number;
   fonte: string;
+  tipoConta: string;
   tipoCusteio: string;
   houveParcela: "Sim" | "Não";
   quantidadeParcelas?: number;
@@ -25,6 +26,8 @@ export interface FinancialEntry {
 export const SIM_NAO_OPTIONS = ["Não", "Sim"] as const;
 
 export const FONTE_OPTIONS = ["SES", "SEAP", "IPREV", "SEGEP", "SEMU", "EMAP"] as const;
+
+export const CONTA_OPTIONS = ["ESTADUAL", "FEDERAL"] as const;
 
 export const CUSTEIO_OPTIONS = [
   "CUSTEIO REGULAR",

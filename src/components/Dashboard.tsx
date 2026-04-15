@@ -48,6 +48,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
               entry.valorRecebido,
               entry.saldoAReceber,
               entry.fonte,
+              entry.tipoConta,
               entry.tipoCusteio,
               entry.houveParcela,
               entry.quantidadeParcelas || 1,
@@ -170,6 +171,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                 <th className="px-6 py-4">Vlr Recebido</th>
                 <th className="px-6 py-4">Saldo</th>
                 <th className="px-6 py-4">Fonte</th>
+                <th className="px-6 py-4">Conta</th>
                 <th className="px-6 py-4">Custeio</th>
                 <th className="px-6 py-4">Parcela?</th>
                 <th className="px-6 py-4">Qtd</th>
@@ -205,6 +207,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                       {formatCurrency(entry.saldoAReceber)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoConta}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoCusteio}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela === "Sim" ? entry.quantidadeParcelas : "-"}</td>
@@ -230,7 +233,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                 ))
               ) : (
                 <tr>
-                  <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
                     Nenhum lançamento encontrado.
                   </td>
                 </tr>

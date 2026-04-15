@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
-import { FinancialEntry, SIM_NAO_OPTIONS, FONTE_OPTIONS, CUSTEIO_OPTIONS } from "../types";
+import { FinancialEntry, SIM_NAO_OPTIONS, FONTE_OPTIONS, CONTA_OPTIONS, CUSTEIO_OPTIONS } from "../types";
 import { Send } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
@@ -23,6 +23,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     valorRecebido: 0,
     saldoAReceber: 0,
     fonte: "SES",
+    tipoConta: "ESTADUAL",
     tipoCusteio: "CUSTEIO REGULAR",
     houveParcela: "Não",
     quantidadeParcelas: 1,
@@ -67,6 +68,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         valorRecebido: 0,
         saldoAReceber: 0,
         fonte: "SES",
+        tipoConta: "ESTADUAL",
         tipoCusteio: "CUSTEIO REGULAR",
         houveParcela: "Não",
         quantidadeParcelas: 1,
@@ -217,6 +219,21 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
             className={inputClasses}
           >
             {FONTE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Tipo de Conta */}
+        <div>
+          <label className={labelClasses}>Tipo de Conta</label>
+          <select
+            name="tipoConta"
+            value={formData.tipoConta}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {CONTA_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
