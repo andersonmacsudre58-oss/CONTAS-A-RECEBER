@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
-import { FinancialEntry, FONTE_OPTIONS, CUSTEIO_OPTIONS, SIM_NAO_OPTIONS } from "../types";
-import { Camera, Send, Loader2, ScanLine, Sparkles } from "lucide-react";
+import { FinancialEntry, SIM_NAO_OPTIONS } from "../types";
+import { Camera, Send } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
 
@@ -15,25 +15,25 @@ interface EntryFormProps {
 
 export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initialData, onCancel }: EntryFormProps) {
   const [loading, setLoading] = useState(false);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FinancialEntry>(initialData || {
     processo: "",
     id: "",
     taxa3: "Não",
-    fonte: "Estadual",
-    custeio: "Regular",
-    conta: "",
     glosa: 0,
     valorFaturado: 0,
     dataRecebimento: new Date().toISOString().split("T")[0],
     valorRecebido: 0,
     saldoAReceber: 0,
     houveParcela: "Não",
+    quantidadeParcelas: 1,
     dataRecebimento2: "",
     valorRecebido2: 0,
     dataRecebimento3: "",
     valorRecebido3: 0,
+    dataRecebimento4: "",
+    valorRecebido4: 0,
+    dataRecebimento5: "",
+    valorRecebido5: 0,
   });
 
   // Update form when initialData changes (for editing)
@@ -68,60 +68,25 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
         processo: "",
         id: "",
         taxa3: "Não",
-        fonte: "Estadual",
-        custeio: "Regular",
-        conta: "",
         glosa: 0,
         valorFaturado: 0,
         dataRecebimento: new Date().toISOString().split("T")[0],
         valorRecebido: 0,
         saldoAReceber: 0,
         houveParcela: "Não",
+        quantidadeParcelas: 1,
         dataRecebimento2: "",
         valorRecebido2: 0,
         dataRecebimento3: "",
         valorRecebido3: 0,
+        dataRecebimento4: "",
+        valorRecebido4: 0,
+        dataRecebimento5: "",
+        valorRecebido5: 0,
       });
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDigitalize = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        setIsExtracting(true);
-        const base64Image = e.target?.result as string;
-        
-        const response = await axios.post("/api/ocr/extract", { image: base64Image });
-        if (response.data.success) {
-          const extracted = response.data.data;
-          setFormData(prev => ({
-            ...prev,
-            ...extracted,
-            // Ensure numbers are numbers
-            valorRecebido: parseFloat(extracted.valorRecebido) || 0,
-            glosa: parseFloat(extracted.glosa) || 0,
-            saldoAReceber: parseFloat(extracted.saldoAReceber) || 0,
-            valorFaturado: parseFloat(extracted.valorFaturado) || 0,
-            valorRecebido2: parseFloat(extracted.valorRecebido2) || 0,
-            valorRecebido3: parseFloat(extracted.valorRecebido3) || 0,
-          }));
-          alert("Dados extraídos com sucesso pela IA!");
-        }
-      } catch (error) {
-        console.error("Erro na extração IA:", error);
-        alert("Não foi possível extrair os dados automaticamente. Tente uma foto mais nítida.");
-      } finally {
-        setIsExtracting(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const inputClasses = "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 outline-none";
@@ -132,31 +97,7 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-6">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Informações do Recebimento</h3>
-          <p className="text-sm text-slate-500">Preencha manualmente ou use a IA para digitalizar.</p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleDigitalize} 
-            accept="image/*" 
-            capture="environment" 
-            className="hidden" 
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isExtracting}
-            className="flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-600 transition-all hover:bg-indigo-100 active:scale-95 disabled:opacity-50"
-          >
-            {isExtracting ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              <Sparkles size={18} />
-            )}
-            {isExtracting ? "Digitalizando..." : "Digitalizar Documento"}
-          </button>
+          <p className="text-sm text-slate-500">Preencha manualmente os campos abaixo.</p>
         </div>
       </div>
 
@@ -211,50 +152,6 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
-        </div>
-
-        {/* Fonte */}
-        <div>
-          <label className={labelClasses}>Fonte</label>
-          <select
-            name="fonte"
-            value={formData.fonte}
-            onChange={handleChange}
-            className={inputClasses}
-          >
-            {FONTE_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Custeio */}
-        <div>
-          <label className={labelClasses}>Custeio</label>
-          <select
-            name="custeio"
-            value={formData.custeio}
-            onChange={handleChange}
-            className={inputClasses}
-          >
-            {CUSTEIO_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Conta */}
-        <div>
-          <label className={labelClasses}>Conta</label>
-          <input
-            type="text"
-            name="conta"
-            value={formData.conta}
-            onChange={handleChange}
-            className={inputClasses}
-            placeholder="Nº da Conta"
-            required
-          />
         </div>
 
         {/* Glosa */}
@@ -339,51 +236,133 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
           </select>
         </div>
 
+        {/* Quantidade de Parcelas */}
+        {formData.houveParcela === "Sim" && (
+          <div>
+            <label className={labelClasses}>Quantidade de Parcelas</label>
+            <select
+              name="quantidadeParcelas"
+              value={formData.quantidadeParcelas}
+              onChange={handleChange}
+              className={inputClasses}
+            >
+              {[2, 3, 4, 5].map((num) => (
+                <option key={num} value={num}>{num}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Conditional Fields for Installments */}
         {formData.houveParcela === "Sim" && (
           <>
-            <div>
-              <label className={labelClasses}>Data Recebimento 2ª Parcela</label>
-              <input
-                type="date"
-                name="dataRecebimento2"
-                value={formData.dataRecebimento2}
-                onChange={handleChange}
-                className={inputClasses}
-              />
-            </div>
-            <div>
-              <label className={labelClasses}>Valor Recebido 2ª Parcela (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                name="valorRecebido2"
-                value={formData.valorRecebido2}
-                onChange={handleChange}
-                className={inputClasses}
-              />
-            </div>
-            <div>
-              <label className={labelClasses}>Data Recebimento 3ª Parcela</label>
-              <input
-                type="date"
-                name="dataRecebimento3"
-                value={formData.dataRecebimento3}
-                onChange={handleChange}
-                className={inputClasses}
-              />
-            </div>
-            <div>
-              <label className={labelClasses}>Valor Recebido 3ª Parcela (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                name="valorRecebido3"
-                value={formData.valorRecebido3}
-                onChange={handleChange}
-                className={inputClasses}
-              />
-            </div>
+            {/* Parcela 2 */}
+            {Number(formData.quantidadeParcelas) >= 2 && (
+              <>
+                <div>
+                  <label className={labelClasses}>Data Recebimento 2ª Parcela</label>
+                  <input
+                    type="date"
+                    name="dataRecebimento2"
+                    value={formData.dataRecebimento2}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Valor Recebido 2ª Parcela (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="valorRecebido2"
+                    value={formData.valorRecebido2}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+              </>
+            )}
+            
+            {/* Parcela 3 */}
+            {Number(formData.quantidadeParcelas) >= 3 && (
+              <>
+                <div>
+                  <label className={labelClasses}>Data Recebimento 3ª Parcela</label>
+                  <input
+                    type="date"
+                    name="dataRecebimento3"
+                    value={formData.dataRecebimento3}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Valor Recebido 3ª Parcela (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="valorRecebido3"
+                    value={formData.valorRecebido3}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Parcela 4 */}
+            {Number(formData.quantidadeParcelas) >= 4 && (
+              <>
+                <div>
+                  <label className={labelClasses}>Data Recebimento 4ª Parcela</label>
+                  <input
+                    type="date"
+                    name="dataRecebimento4"
+                    value={formData.dataRecebimento4}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Valor Recebido 4ª Parcela (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="valorRecebido4"
+                    value={formData.valorRecebido4}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Parcela 5 */}
+            {Number(formData.quantidadeParcelas) >= 5 && (
+              <>
+                <div>
+                  <label className={labelClasses}>Data Recebimento 5ª Parcela</label>
+                  <input
+                    type="date"
+                    name="dataRecebimento5"
+                    value={formData.dataRecebimento5}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Valor Recebido 5ª Parcela (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="valorRecebido5"
+                    value={formData.valorRecebido5}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -408,7 +387,6 @@ export default function EntryForm({ onSubmit, onOpenScanner, scannedData, initia
         >
           {loading ? (
             <>
-              <Loader2 className="animate-spin" size={20} />
               Enviando...
             </>
           ) : (

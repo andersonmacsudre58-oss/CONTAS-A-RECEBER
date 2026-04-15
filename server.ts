@@ -3,7 +3,6 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { google } from "googleapis";
 import dotenv from "dotenv";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
@@ -12,10 +11,6 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json({ limit: "10mb" }));
-
-  // Gemini Setup
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   // Google Sheets Auth
   const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
@@ -49,10 +44,10 @@ async function startServer() {
 
       const { values } = req.body;
       
-      // Usar apenas "A:Q" permite que o Google use a primeira aba ativa por padrão
+      // Usar apenas "A:R" permite que o Google use a primeira aba ativa por padrão
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "A:Q",
+        range: "A:R",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -75,7 +70,7 @@ async function startServer() {
 
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: "A:Q",
+        range: "A:R",
       });
 
       res.json({ success: true, data: response.data.values || [] });
@@ -96,7 +91,7 @@ async function startServer() {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `A${row}:Q${row}`,
+        range: `A${row}:R${row}`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -121,64 +116,13 @@ async function startServer() {
       // Clearing the row is safer than deleting (which shifts rows and breaks index references)
       await sheets.spreadsheets.values.clear({
         spreadsheetId,
-        range: `A${row}:Q${row}`,
+        range: `A${row}:R${row}`,
       });
 
       res.json({ success: true });
     } catch (error: any) {
       console.error("Sheets Delete Error:", error);
       res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.post("/api/ocr/extract", async (req, res) => {
-    try {
-      const { image } = req.body; // base64 image
-      if (!image) return res.status(400).json({ error: "Imagem não fornecida" });
-
-      const prompt = `
-        Analise esta imagem de um documento financeiro (fatura, recibo, nota) e extraia os seguintes campos em formato JSON.
-        Se não encontrar um campo, deixe-o vazio ou como 0 para números.
-        
-        Campos:
-        1. processo (número do processo)
-        2. id (identificador do documento)
-        3. taxa3 (ex: "Sim" ou "Não")
-        4. fonte (ex: "Federal" ou "Estadual")
-        5. custeio (ex: "Regular", "Investimento", "Mutirão", "Global", "Acordo Coletivo")
-        6. conta (número da conta)
-        7. glosa (valor numérico)
-        8. valorFaturado (valor numérico)
-        9. dataRecebimento (formato YYYY-MM-DD)
-        10. valorRecebido (número)
-        11. saldoAReceber (valor numérico)
-        12. houveParcela (ex: "Sim" ou "Não")
-        13. dataRecebimento2 (formato YYYY-MM-DD)
-        14. valorRecebido2 (número)
-        15. dataRecebimento3 (formato YYYY-MM-DD)
-        16. valorRecebido3 (número)
-
-        Retorne APENAS o JSON puro, sem blocos de código markdown.
-      `;
-
-      const result = await model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            data: image.split(",")[1],
-            mimeType: "image/jpeg",
-          },
-        },
-      ]);
-
-      const text = result.response.text();
-      const cleanText = text.replace(/```json|```/g, "").trim();
-      const extractedData = JSON.parse(cleanText);
-
-      res.json({ success: true, data: extractedData });
-    } catch (error: any) {
-      console.error("OCR Error:", error);
-      res.status(500).json({ error: "Erro ao processar imagem com IA" });
     }
   });
 
