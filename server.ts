@@ -44,10 +44,10 @@ async function startServer() {
 
       const { values } = req.body;
       
-      // Usar apenas "A:V" para acomodar as novas colunas
+      // Usar apenas "A:W" para acomodar as novas colunas
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "A:V",
+        range: "A:W",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -70,7 +70,7 @@ async function startServer() {
 
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: "A:V",
+        range: "A:W",
       });
 
       res.json({ success: true, data: response.data.values || [] });
@@ -91,7 +91,7 @@ async function startServer() {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `A${row}:V${row}`,
+        range: `A${row}:W${row}`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [values],
@@ -116,7 +116,7 @@ async function startServer() {
       // Clearing the row is safer than deleting (which shifts rows and breaks index references)
       await sheets.spreadsheets.values.clear({
         spreadsheetId,
-        range: `A${row}:V${row}`,
+        range: `A${row}:W${row}`,
       });
 
       res.json({ success: true });

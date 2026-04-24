@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
-import { FinancialEntry, SIM_NAO_OPTIONS, FONTE_OPTIONS, CONTA_OPTIONS, CUSTEIO_OPTIONS } from "../types";
+import { FinancialEntry, SIM_NAO_OPTIONS, FONTE_OPTIONS, CONTA_OPTIONS, CUSTEIO_OPTIONS, MESES_OPTIONS } from "../types";
 import { Send } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
@@ -16,6 +16,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
   const [formData, setFormData] = useState<FinancialEntry>(initialData || {
     processo: "",
     id: "",
+    mesFatura: MESES_OPTIONS[new Date().getMonth()],
     taxa3: "Não",
     glosa: 0,
     valorFaturado: 0,
@@ -61,6 +62,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
       setFormData({
         processo: "",
         id: "",
+        mesFatura: MESES_OPTIONS[new Date().getMonth()],
         taxa3: "Não",
         glosa: 0,
         valorFaturado: 0,
@@ -113,6 +115,21 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           />
         </div>
 
+        {/* Fonte */}
+        <div>
+          <label className={labelClasses}>Fonte</label>
+          <select
+            name="fonte"
+            value={formData.fonte}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {FONTE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
         {/* ID */}
         <div>
           <label className={labelClasses}>ID</label>
@@ -125,6 +142,39 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
             placeholder="Identificador"
             required
           />
+        </div>
+
+        {/* Mês da Fatura */}
+        <div>
+          <label className={labelClasses}>Mês da Fatura</label>
+          <select
+            name="mesFatura"
+            value={formData.mesFatura}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            {MESES_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Valor Faturado */}
+        <div>
+          <label className={labelClasses}>Valor Faturado (R$)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="valorFaturado"
+            value={formData.valorFaturado}
+            onChange={handleChange}
+            className={inputClasses}
+            required
+          />
+        </div>
+
+        <div className="md:col-span-2 lg:col-span-3 pt-4 border-t border-slate-50 mt-2">
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Informações de Recebimento (Preencher após pagamento)</h4>
         </div>
 
         {/* Taxa 3% */}
@@ -178,7 +228,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
             value={formData.dataRecebimento}
             onChange={handleChange}
             className={inputClasses}
-            required
           />
         </div>
 
@@ -192,7 +241,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
             value={formData.valorRecebido}
             onChange={handleChange}
             className={inputClasses}
-            required
           />
         </div>
 
@@ -210,19 +258,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         </div>
 
         {/* Fonte */}
-        <div>
-          <label className={labelClasses}>Fonte</label>
-          <select
-            name="fonte"
-            value={formData.fonte}
-            onChange={handleChange}
-            className={inputClasses}
-          >
-            {FONTE_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
+        {/* Removed duplicate from here as it's now in the header section */}
 
         {/* Tipo de Conta */}
         <div>

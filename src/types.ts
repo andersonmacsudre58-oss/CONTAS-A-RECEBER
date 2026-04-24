@@ -2,6 +2,7 @@ export interface FinancialEntry {
   rowIndex?: number;
   processo: string;
   id: string;
+  mesFatura: string;
   taxa3: "Sim" | "Não";
   glosa: number;
   valorFaturado: number;
@@ -24,6 +25,11 @@ export interface FinancialEntry {
 }
 
 export const SIM_NAO_OPTIONS = ["Não", "Sim"] as const;
+
+export const MESES_OPTIONS = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+] as const;
 
 export const FONTE_OPTIONS = ["SES", "SEAP", "IPREV", "SEGEP", "SEMU", "EMAP"] as const;
 

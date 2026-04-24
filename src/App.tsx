@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 
 export default function App() {
   const [entries, setEntries] = useState<FinancialEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<"form" | "dashboard">("form");
+  const [activeTab, setActiveTab] = useState<"form" | "dashboard" | "faturados" | "recebidos">("dashboard");
   const [editingEntry, setEditingEntry] = useState<FinancialEntry | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,6 +48,7 @@ export default function App() {
               valorRecebido4: parseFloat(row[18]) || 0,
               dataRecebimento5: row[19],
               valorRecebido5: parseFloat(row[20]) || 0,
+              mesFatura: row[21] || ""
             }))
             .filter(entry => entry.processo || entry.id);
           setEntries(formatted);
@@ -82,6 +83,7 @@ export default function App() {
         entry.valorRecebido4 || 0,
         entry.dataRecebimento5 || "",
         entry.valorRecebido5 || 0,
+        entry.mesFatura || "",
         new Date().toISOString(), // Timestamp
       ];
 
@@ -133,18 +135,6 @@ export default function App() {
 
         <nav className="space-y-2">
           <button
-            onClick={() => {
-              setActiveTab("form");
-              setEditingEntry(null);
-            }}
-            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-              activeTab === "form" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-            }`}
-          >
-            <PlusCircle size={20} />
-            Novo Lançamento
-          </button>
-          <button
             onClick={() => setActiveTab("dashboard")}
             className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
               activeTab === "dashboard" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
@@ -153,6 +143,41 @@ export default function App() {
             <LayoutDashboard size={20} />
             Dashboard
           </button>
+          
+          <button
+            onClick={() => setActiveTab("faturados")}
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+              activeTab === "faturados" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            }`}
+          >
+            <PlusCircle size={20} className="text-orange-500" />
+            Faturados
+          </button>
+
+          <button
+            onClick={() => setActiveTab("recebidos")}
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+              activeTab === "recebidos" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            }`}
+          >
+            <Wallet size={20} className="text-green-500" />
+            Recebidos
+          </button>
+
+          <div className="pt-4 mt-4 border-t border-slate-100">
+            <button
+              onClick={() => {
+                setActiveTab("form");
+                setEditingEntry(null);
+              }}
+              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                activeTab === "form" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              <PlusCircle size={20} />
+              Novo Lançamento
+            </button>
+          </div>
         </nav>
       </aside>
 
@@ -177,32 +202,54 @@ export default function App() {
           <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-                {activeTab === "form" ? "Lançamento de Dados" : "Visão Geral"}
+                {activeTab === "form" ? "Lançamento de Dados" : 
+                 activeTab === "faturados" ? "Faturados (Aguardando)" :
+                 activeTab === "recebidos" ? "Recebidos (Pagos)" : "Visão Geral"}
               </h2>
               <p className="mt-1 text-slate-500">
                 {activeTab === "form" 
                   ? "Preencha os campos abaixo para registrar um novo recebimento." 
+                  : activeTab === "faturados"
+                  ? "Lista de faturas lançadas que ainda não foram pagas."
+                  : activeTab === "recebidos"
+                  ? "Lista de faturas que já foram devidamente recebidas."
                   : "Acompanhe o status dos seus recebimentos e faturas."}
               </p>
             </div>
             
             {/* Mobile Tab Switcher */}
-            <div className="flex rounded-lg bg-slate-100 p-1 lg:hidden">
-              <button
-                onClick={() => setActiveTab("form")}
-                className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
-                  activeTab === "form" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
-                }`}
-              >
-                Lançar
-              </button>
+            <div className="flex flex-wrap rounded-lg bg-slate-100 p-1 lg:hidden">
               <button
                 onClick={() => setActiveTab("dashboard")}
-                className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                   activeTab === "dashboard" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
                 }`}
               >
                 Dashboard
+              </button>
+              <button
+                onClick={() => setActiveTab("faturados")}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  activeTab === "faturados" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                Faturados
+              </button>
+              <button
+                onClick={() => setActiveTab("recebidos")}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  activeTab === "recebidos" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                Recebidos
+              </button>
+              <button
+                onClick={() => setActiveTab("form")}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  activeTab === "form" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                Novo
               </button>
             </div>
           </header>
@@ -226,12 +273,29 @@ export default function App() {
                     }}
                   />
                 </div>
+              ) : activeTab === "faturados" ? (
+                <Dashboard 
+                  entries={entries.filter(e => !e.valorRecebido || e.valorRecebido === 0)} 
+                  onEdit={handleEdit}
+                  onDelete={(row) => setDeleteConfirm(row)}
+                  onRefresh={fetchEntries}
+                  view="faturados"
+                />
+              ) : activeTab === "recebidos" ? (
+                <Dashboard 
+                  entries={entries.filter(e => e.valorRecebido > 0)} 
+                  onEdit={handleEdit}
+                  onDelete={(row) => setDeleteConfirm(row)}
+                  onRefresh={fetchEntries}
+                  view="recebidos"
+                />
               ) : (
                 <Dashboard 
                   entries={entries} 
                   onEdit={handleEdit}
                   onDelete={(row) => setDeleteConfirm(row)}
                   onRefresh={fetchEntries}
+                  view="all"
                 />
               )}
             </motion.div>

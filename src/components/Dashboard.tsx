@@ -12,9 +12,10 @@ interface DashboardProps {
   onEdit: (entry: FinancialEntry) => void;
   onDelete: (rowIndex: number) => void;
   onRefresh: () => Promise<void>;
+  view?: "all" | "faturados" | "recebidos";
 }
 
-export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: DashboardProps) {
+export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view = "all" }: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isRestoring, setIsRestoring] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +108,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
         <div className="flex items-center gap-4">
           <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900">
             <Table className="text-blue-600" />
-            Últimos Lançamentos
+            {view === "faturados" ? "Faturas Pendentes" : view === "recebidos" ? "Recebimentos Concluídos" : "Todos os Lançamentos"}
           </h2>
           <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
           <div className="flex items-center gap-2">
@@ -161,62 +162,85 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              <tr>
-                <th className="px-6 py-4">Processo</th>
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Taxa 3%</th>
-                <th className="px-6 py-4">Glosa</th>
-                <th className="px-6 py-4">Vlr Faturado</th>
-                <th className="px-6 py-4">Data</th>
-                <th className="px-6 py-4">Vlr Recebido</th>
-                <th className="px-6 py-4">Saldo</th>
-                <th className="px-6 py-4">Fonte</th>
-                <th className="px-6 py-4">Conta</th>
-                <th className="px-6 py-4">Custeio</th>
-                <th className="px-6 py-4">Parcela?</th>
-                <th className="px-6 py-4">Qtd</th>
-                <th className="px-6 py-4 text-center">Ações</th>
-              </tr>
+              {view === "faturados" ? (
+                <tr>
+                  <th className="px-6 py-4">Processo</th>
+                  <th className="px-6 py-4">Fonte</th>
+                  <th className="px-6 py-4">ID</th>
+                  <th className="px-6 py-4">Mês Fatura</th>
+                  <th className="px-6 py-4">Vlr Faturado</th>
+                  <th className="px-6 py-4 text-center">Ações</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th className="px-6 py-4">Processo</th>
+                  <th className="px-6 py-4">ID</th>
+                  <th className="px-6 py-4">Taxa 3%</th>
+                  <th className="px-6 py-4">Glosa</th>
+                  <th className="px-6 py-4">Vlr Faturado</th>
+                  <th className="px-6 py-4">Data</th>
+                  <th className="px-6 py-4">Vlr Recebido</th>
+                  <th className="px-6 py-4">Saldo</th>
+                  <th className="px-6 py-4">Fonte</th>
+                  <th className="px-6 py-4">Conta</th>
+                  <th className="px-6 py-4">Custeio</th>
+                  <th className="px-6 py-4">Parcela?</th>
+                  <th className="px-6 py-4">Qtd</th>
+                  <th className="px-6 py-4 text-center">Ações</th>
+                </tr>
+              )}
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredEntries.length > 0 ? (
                 filteredEntries.map((entry, idx) => (
                   <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
-                      {entry.processo}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.id}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        entry.taxa3 === "Sim" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                      }`}>
-                        {entry.taxa3}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{formatCurrency(entry.glosa)}</td>
-                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600">
-                      {formatCurrency(entry.valorFaturado)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">
-                      {entry.dataRecebimento ? new Date(entry.dataRecebimento).toLocaleDateString("pt-BR") : "-"}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-green-600">
-                      {formatCurrency(entry.valorRecebido)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-red-600">
-                      {formatCurrency(entry.saldoAReceber)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoConta}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoCusteio}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela === "Sim" ? entry.quantidadeParcelas : "-"}</td>
+                    {view === "faturados" ? (
+                      <>
+                        <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">{entry.processo}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.id}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.mesFatura || "-"}</td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600">{formatCurrency(entry.valorFaturado)}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">
+                          {entry.processo}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.id}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            entry.taxa3 === "Sim" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                          }`}>
+                            {entry.taxa3}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{formatCurrency(entry.glosa)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600">
+                          {formatCurrency(entry.valorFaturado)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">
+                          {entry.dataRecebimento ? new Date(entry.dataRecebimento).toLocaleDateString("pt-BR") : "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-green-600">
+                          {formatCurrency(entry.valorRecebido)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-red-600">
+                          {formatCurrency(entry.saldoAReceber)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoConta}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoCusteio}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.houveParcela === "Sim" ? entry.quantidadeParcelas : "-"}</td>
+                      </>
+                    )}
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => onEdit(entry)}
                           className="rounded-md p-1.5 text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Editar"
+                          title="Editar/Receber"
                         >
                           <Edit2 size={16} />
                         </button>
@@ -233,7 +257,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh }: Dash
                 ))
               ) : (
                 <tr>
-                  <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={view === "faturados" ? 6 : 14} className="px-6 py-12 text-center text-gray-500">
                     Nenhum lançamento encontrado.
                   </td>
                 </tr>
