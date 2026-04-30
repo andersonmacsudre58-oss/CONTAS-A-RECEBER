@@ -16,6 +16,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
   const [formData, setFormData] = useState<FinancialEntry>(initialData || {
     processo: "",
     id: "",
+    aditivos: "",
     mesFatura: MESES_OPTIONS[new Date().getMonth()],
     taxa3: "Não",
     glosa: 0,
@@ -62,6 +63,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
       setFormData({
         processo: "",
         id: "",
+        aditivos: "",
         mesFatura: MESES_OPTIONS[new Date().getMonth()],
         taxa3: "Não",
         glosa: 0,
@@ -159,6 +161,19 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           </select>
         </div>
 
+        {/* Aditivos */}
+        <div>
+          <label className={labelClasses}>Aditivos</label>
+          <input
+            type="text"
+            name="aditivos"
+            value={formData.aditivos}
+            onChange={handleChange}
+            className={inputClasses}
+            placeholder="Ex: 01, 02, etc"
+          />
+        </div>
+
         {/* Valor Faturado */}
         <div>
           <label className={labelClasses}>Valor Faturado (R$)</label>
@@ -205,19 +220,8 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           />
         </div>
 
-        {/* Valor Faturado */}
-        <div>
-          <label className={labelClasses}>Valor Faturado (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            name="valorFaturado"
-            value={formData.valorFaturado}
-            onChange={handleChange}
-            className={inputClasses}
-            required
-          />
-        </div>
+        {/* Aditivos */}
+        {/* Aditivos is already in the header section */}
 
         {/* Data do Recebimento */}
         <div>

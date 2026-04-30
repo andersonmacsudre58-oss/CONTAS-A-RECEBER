@@ -2,6 +2,7 @@ export interface FinancialEntry {
   rowIndex?: number;
   processo: string;
   id: string;
+  aditivos: string;
   mesFatura: string;
   taxa3: "Sim" | "Não";
   glosa: number;
