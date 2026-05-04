@@ -49,7 +49,12 @@ export default function App() {
               valorRecebido4: parseFloat(row[19]) || 0,
               dataRecebimento5: row[20],
               valorRecebido5: parseFloat(row[21]) || 0,
-              mesFatura: row[22] || ""
+              mesFatura: row[22] || "",
+              dataOficio: row[23] || "",
+              tipoConta2: row[24] || "ESTADUAL",
+              tipoConta3: row[25] || "ESTADUAL",
+              tipoConta4: row[26] || "ESTADUAL",
+              tipoConta5: row[27] || "ESTADUAL"
             }))
             .filter(entry => entry.processo || entry.id);
           setEntries(formatted);
@@ -86,6 +91,11 @@ export default function App() {
         entry.dataRecebimento5 || "",
         entry.valorRecebido5 || 0,
         entry.mesFatura || "",
+        entry.dataOficio || "",
+        entry.tipoConta2 || "ESTADUAL",
+        entry.tipoConta3 || "ESTADUAL",
+        entry.tipoConta4 || "ESTADUAL",
+        entry.tipoConta5 || "ESTADUAL",
         new Date().toISOString(), // Timestamp
       ];
 

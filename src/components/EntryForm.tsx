@@ -18,6 +18,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     id: "",
     aditivos: "",
     mesFatura: MESES_OPTIONS[new Date().getMonth()],
+    dataOficio: "",
     taxa3: "Não",
     glosa: 0,
     valorFaturado: 0,
@@ -37,6 +38,10 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     valorRecebido4: 0,
     dataRecebimento5: "",
     valorRecebido5: 0,
+    tipoConta2: "ESTADUAL",
+    tipoConta3: "ESTADUAL",
+    tipoConta4: "ESTADUAL",
+    tipoConta5: "ESTADUAL",
   });
 
   // Update form when initialData changes (for editing)
@@ -45,6 +50,33 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
       setFormData(initialData);
     }
   }, [initialData]);
+
+  // Real-time calculation of Saldo a Receber
+  useEffect(() => {
+    const faturado = formData.valorFaturado || 0;
+    const glosa = formData.glosa || 0;
+    const rec1 = formData.valorRecebido || 0;
+    const rec2 = formData.houveParcela === "Sim" ? (formData.valorRecebido2 || 0) : 0;
+    const rec3 = formData.houveParcela === "Sim" ? (formData.valorRecebido3 || 0) : 0;
+    const rec4 = formData.houveParcela === "Sim" ? (formData.valorRecebido4 || 0) : 0;
+    const rec5 = formData.houveParcela === "Sim" ? (formData.valorRecebido5 || 0) : 0;
+
+    const totalRecebido = rec1 + rec2 + rec3 + rec4 + rec5;
+    const saldo = faturado - glosa - totalRecebido;
+
+    if (formData.saldoAReceber !== saldo) {
+      setFormData(prev => ({ ...prev, saldoAReceber: saldo }));
+    }
+  }, [
+    formData.valorFaturado,
+    formData.glosa,
+    formData.valorRecebido,
+    formData.valorRecebido2,
+    formData.valorRecebido3,
+    formData.valorRecebido4,
+    formData.valorRecebido5,
+    formData.houveParcela
+  ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -65,6 +97,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         id: "",
         aditivos: "",
         mesFatura: MESES_OPTIONS[new Date().getMonth()],
+        dataOficio: "",
         taxa3: "Não",
         glosa: 0,
         valorFaturado: 0,
@@ -84,6 +117,10 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         valorRecebido4: 0,
         dataRecebimento5: "",
         valorRecebido5: 0,
+        tipoConta2: "ESTADUAL",
+        tipoConta3: "ESTADUAL",
+        tipoConta4: "ESTADUAL",
+        tipoConta5: "ESTADUAL",
       });
     } finally {
       setLoading(false);
@@ -92,13 +129,16 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
 
   const inputClasses = "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 outline-none";
   const labelClasses = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500";
+  const currencyInputContainer = "relative flex items-center";
+  const currencyPrefix = "absolute left-3 text-gray-400 text-sm font-medium pointer-events-none";
+  const currencyInput = cn(inputClasses, "pl-10");
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-6">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Informações do Recebimento</h3>
-          <p className="text-sm text-slate-500">Preencha manualmente os campos abaixo.</p>
+          <h3 className="text-lg font-semibold text-slate-900">Informações do Faturamento</h3>
+          <p className="text-sm text-slate-500">Insira os dados iniciais do processo e fatura.</p>
         </div>
       </div>
 
@@ -161,6 +201,18 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           </select>
         </div>
 
+        {/* Data Ofício */}
+        <div>
+          <label className={labelClasses}>Data Ofício</label>
+          <input
+            type="date"
+            name="dataOficio"
+            value={formData.dataOficio}
+            onChange={handleChange}
+            className={inputClasses}
+          />
+        </div>
+
         {/* Aditivos */}
         <div>
           <label className={labelClasses}>Aditivos</label>
@@ -176,20 +228,23 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
 
         {/* Valor Faturado */}
         <div>
-          <label className={labelClasses}>Valor Faturado (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            name="valorFaturado"
-            value={formData.valorFaturado}
-            onChange={handleChange}
-            className={inputClasses}
-            required
-          />
+          <label className={labelClasses}>Valor Faturado</label>
+          <div className={currencyInputContainer}>
+            <span className={currencyPrefix}>R$</span>
+            <input
+              type="number"
+              step="0.01"
+              name="valorFaturado"
+              value={formData.valorFaturado}
+              onChange={handleChange}
+              className={currencyInput}
+              required
+            />
+          </div>
         </div>
 
         <div className="md:col-span-2 lg:col-span-3 pt-4 border-t border-slate-50 mt-2">
-          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Informações de Recebimento (Preencher após pagamento)</h4>
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Informações do Recebimento</h4>
         </div>
 
         {/* Taxa 3% */}
@@ -209,15 +264,18 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
 
         {/* Glosa */}
         <div>
-          <label className={labelClasses}>Glosa (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            name="glosa"
-            value={formData.glosa}
-            onChange={handleChange}
-            className={inputClasses}
-          />
+          <label className={labelClasses}>Glosa</label>
+          <div className={currencyInputContainer}>
+            <span className={currencyPrefix}>R$</span>
+            <input
+              type="number"
+              step="0.01"
+              name="glosa"
+              value={formData.glosa}
+              onChange={handleChange}
+              className={currencyInput}
+            />
+          </div>
         </div>
 
         {/* Aditivos */}
@@ -237,28 +295,34 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
 
         {/* Valor Recebido */}
         <div>
-          <label className={labelClasses}>Valor Recebido (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            name="valorRecebido"
-            value={formData.valorRecebido}
-            onChange={handleChange}
-            className={inputClasses}
-          />
+          <label className={labelClasses}>Valor Recebido</label>
+          <div className={currencyInputContainer}>
+            <span className={currencyPrefix}>R$</span>
+            <input
+              type="number"
+              step="0.01"
+              name="valorRecebido"
+              value={formData.valorRecebido}
+              onChange={handleChange}
+              className={currencyInput}
+            />
+          </div>
         </div>
 
         {/* Saldo a Receber */}
         <div>
-          <label className={labelClasses}>Saldo a Receber (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            name="saldoAReceber"
-            value={formData.saldoAReceber}
-            onChange={handleChange}
-            className={inputClasses}
-          />
+          <label className={labelClasses}>Saldo a Receber (Calculado)</label>
+          <div className={currencyInputContainer}>
+            <span className={currencyPrefix}>R$</span>
+            <input
+              type="number"
+              step="0.01"
+              name="saldoAReceber"
+              value={formData.saldoAReceber}
+              className={cn(currencyInput, "bg-blue-50/50 font-bold text-blue-700 pointer-events-none")}
+              readOnly
+            />
+          </div>
         </div>
 
         {/* Fonte */}
@@ -328,115 +392,220 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
 
         {/* Conditional Fields for Installments */}
         {formData.houveParcela === "Sim" && (
-          <>
-            {/* Parcela 2 */}
-            {Number(formData.quantidadeParcelas) >= 2 && (
-              <>
-                <div>
-                  <label className={labelClasses}>Data Recebimento 2ª Parcela</label>
-                  <input
-                    type="date"
-                    name="dataRecebimento2"
-                    value={formData.dataRecebimento2}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
-                </div>
-                <div>
-                  <label className={labelClasses}>Valor Recebido 2ª Parcela (R$)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="valorRecebido2"
-                    value={formData.valorRecebido2}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
-                </div>
-              </>
-            )}
+          <div className="md:col-span-2 lg:col-span-3 space-y-6 mt-4">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-2">
+              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Detalhamento das Parcelas Extras</h4>
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-600">
+                {formData.quantidadeParcelas}x Total
+              </span>
+            </div>
             
-            {/* Parcela 3 */}
-            {Number(formData.quantidadeParcelas) >= 3 && (
-              <>
-                <div>
-                  <label className={labelClasses}>Data Recebimento 3ª Parcela</label>
-                  <input
-                    type="date"
-                    name="dataRecebimento3"
-                    value={formData.dataRecebimento3}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
+            <div className="space-y-4">
+              {/* Parcela 2 */}
+              {Number(formData.quantidadeParcelas) >= 2 && (
+                <div className="group relative rounded-2xl border border-slate-100 bg-slate-50/30 p-5 transition-all hover:bg-white hover:shadow-md hover:shadow-slate-200/50">
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-100/50 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">2</div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Segunda Parcela</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div>
+                      <label className={labelClasses}>Data Recebimento</label>
+                      <input
+                        type="date"
+                        name="dataRecebimento2"
+                        value={formData.dataRecebimento2}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Valor Recebido</label>
+                      <div className={currencyInputContainer}>
+                        <span className={currencyPrefix}>R$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          name="valorRecebido2"
+                          value={formData.valorRecebido2}
+                          onChange={handleChange}
+                          className={currencyInput}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta2"
+                        value={formData.tipoConta2}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className={labelClasses}>Valor Recebido 3ª Parcela (R$)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="valorRecebido3"
-                    value={formData.valorRecebido3}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
+              )}
+              
+              {/* Parcela 3 */}
+              {Number(formData.quantidadeParcelas) >= 3 && (
+                <div className="group relative rounded-2xl border border-slate-100 bg-slate-50/30 p-5 transition-all hover:bg-white hover:shadow-md hover:shadow-slate-200/50">
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-100/50 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">3</div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Terceira Parcela</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div>
+                      <label className={labelClasses}>Data Recebimento</label>
+                      <input
+                        type="date"
+                        name="dataRecebimento3"
+                        value={formData.dataRecebimento3}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Valor Recebido</label>
+                      <div className={currencyInputContainer}>
+                        <span className={currencyPrefix}>R$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          name="valorRecebido3"
+                          value={formData.valorRecebido3}
+                          onChange={handleChange}
+                          className={currencyInput}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta3"
+                        value={formData.tipoConta3}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-              </>
-            )}
+              )}
 
-            {/* Parcela 4 */}
-            {Number(formData.quantidadeParcelas) >= 4 && (
-              <>
-                <div>
-                  <label className={labelClasses}>Data Recebimento 4ª Parcela</label>
-                  <input
-                    type="date"
-                    name="dataRecebimento4"
-                    value={formData.dataRecebimento4}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
+              {/* Parcela 4 */}
+              {Number(formData.quantidadeParcelas) >= 4 && (
+                <div className="group relative rounded-2xl border border-slate-100 bg-slate-50/30 p-5 transition-all hover:bg-white hover:shadow-md hover:shadow-slate-200/50">
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-100/50 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">4</div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Quarta Parcela</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div>
+                      <label className={labelClasses}>Data Recebimento</label>
+                      <input
+                        type="date"
+                        name="dataRecebimento4"
+                        value={formData.dataRecebimento4}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Valor Recebido</label>
+                      <div className={currencyInputContainer}>
+                        <span className={currencyPrefix}>R$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          name="valorRecebido4"
+                          value={formData.valorRecebido4}
+                          onChange={handleChange}
+                          className={currencyInput}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta4"
+                        value={formData.tipoConta4}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className={labelClasses}>Valor Recebido 4ª Parcela (R$)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="valorRecebido4"
-                    value={formData.valorRecebido4}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
-                </div>
-              </>
-            )}
+              )}
 
-            {/* Parcela 5 */}
-            {Number(formData.quantidadeParcelas) >= 5 && (
-              <>
-                <div>
-                  <label className={labelClasses}>Data Recebimento 5ª Parcela</label>
-                  <input
-                    type="date"
-                    name="dataRecebimento5"
-                    value={formData.dataRecebimento5}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
+              {/* Parcela 5 */}
+              {Number(formData.quantidadeParcelas) >= 5 && (
+                <div className="group relative rounded-2xl border border-slate-100 bg-slate-50/30 p-5 transition-all hover:bg-white hover:shadow-md hover:shadow-slate-200/50">
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-100/50 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">5</div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Quinta Parcela</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div>
+                      <label className={labelClasses}>Data Recebimento</label>
+                      <input
+                        type="date"
+                        name="dataRecebimento5"
+                        value={formData.dataRecebimento5}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Valor Recebido</label>
+                      <div className={currencyInputContainer}>
+                        <span className={currencyPrefix}>R$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          name="valorRecebido5"
+                          value={formData.valorRecebido5}
+                          onChange={handleChange}
+                          className={currencyInput}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta5"
+                        value={formData.tipoConta5}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className={labelClasses}>Valor Recebido 5ª Parcela (R$)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="valorRecebido5"
-                    value={formData.valorRecebido5}
-                    onChange={handleChange}
-                    className={inputClasses}
-                  />
-                </div>
-              </>
-            )}
-          </>
+              )}
+            </div>
+          </div>
         )}
       </div>
 

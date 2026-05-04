@@ -63,6 +63,11 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
               entry.dataRecebimento5 || "",
               entry.valorRecebido5 || 0,
               entry.mesFatura || "",
+              entry.dataOficio || "",
+              entry.tipoConta2 || "ESTADUAL",
+              entry.tipoConta3 || "ESTADUAL",
+              entry.tipoConta4 || "ESTADUAL",
+              entry.tipoConta5 || "ESTADUAL",
               new Date().toISOString(),
             ];
             await axios.post("/api/sheets/append", { values });
@@ -171,7 +176,8 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
                   <th className="px-6 py-4">ID</th>
                   <th className="px-6 py-4">Aditivos</th>
                   <th className="px-6 py-4">Mês Fatura</th>
-                  <th className="px-6 py-4">Vlr Faturado</th>
+                  <th className="px-6 py-4">Data Ofício</th>
+                  <th className="px-6 py-4 text-right">Vlr Faturado</th>
                   <th className="px-6 py-4 text-center">Ações</th>
                 </tr>
               ) : (
@@ -179,12 +185,13 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
                   <th className="px-6 py-4">Processo</th>
                   <th className="px-6 py-4">ID</th>
                   <th className="px-6 py-4">Aditivos</th>
+                  <th className="px-6 py-4">Data Ofício</th>
                   <th className="px-6 py-4">Taxa 3%</th>
-                  <th className="px-6 py-4">Glosa</th>
-                  <th className="px-6 py-4">Vlr Faturado</th>
+                  <th className="px-6 py-4 text-right">Glosa</th>
+                  <th className="px-6 py-4 text-right">Vlr Faturado</th>
                   <th className="px-6 py-4">Data</th>
-                  <th className="px-6 py-4">Vlr Recebido</th>
-                  <th className="px-6 py-4">Saldo</th>
+                  <th className="px-6 py-4 text-right">Vlr Recebido</th>
+                  <th className="px-6 py-4 text-right">Saldo</th>
                   <th className="px-6 py-4">Fonte</th>
                   <th className="px-6 py-4">Conta</th>
                   <th className="px-6 py-4">Custeio</th>
@@ -205,7 +212,10 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.id}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.aditivos || "-"}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.mesFatura || "-"}</td>
-                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600">{formatCurrency(entry.valorFaturado)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">
+                          {entry.dataOficio ? new Date(entry.dataOficio).toLocaleDateString("pt-BR") : "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600 text-right">{formatCurrency(entry.valorFaturado)}</td>
                       </>
                     ) : (
                       <>
@@ -213,19 +223,22 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.id}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.aditivos || "-"}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">
+                          {entry.dataOficio ? new Date(entry.dataOficio).toLocaleDateString("pt-BR") : "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">
                           <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             entry.taxa3 === "Sim" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
                           }`}>
                             {entry.taxa3}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-gray-600">{formatCurrency(entry.glosa)}</td>
-                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600">{formatCurrency(entry.valorFaturado)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-gray-600 text-right">{formatCurrency(entry.glosa)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-blue-600 text-right">{formatCurrency(entry.valorFaturado)}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">
                           {entry.dataRecebimento ? new Date(entry.dataRecebimento).toLocaleDateString("pt-BR") : "-"}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-green-600">{formatCurrency(entry.valorRecebido)}</td>
-                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-red-600">{formatCurrency(entry.saldoAReceber)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-green-600 text-right">{formatCurrency(entry.valorRecebido)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 font-semibold text-red-600 text-right">{formatCurrency(entry.saldoAReceber)}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.fonte}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoConta}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-gray-600">{entry.tipoCusteio}</td>
@@ -255,7 +268,7 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
                 ))
               ) : (
                 <tr>
-                  <td colSpan={view === "faturados" ? 7 : 15} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={view === "faturados" ? 8 : 16} className="px-6 py-12 text-center text-gray-500">
                     Nenhum lançamento encontrado.
                   </td>
                 </tr>
