@@ -50,12 +50,7 @@ export default function App() {
               dataRecebimento5: row[20],
               valorRecebido5: parseFloat(row[21]) || 0,
               mesFatura: row[22] || "",
-              dataOficio: row[23] || "",
-              tipoConta2: row[24] || "",
-              unidadeSaude: row[25] || "",
-              tipoConta3: row[26] || "",
-              tipoConta4: row[27] || "",
-              tipoConta5: row[28] || ""
+              dataOficio: row[23] || ""
             }))
             .filter(entry => entry.processo || entry.id);
           setEntries(formatted);
@@ -93,13 +88,6 @@ export default function App() {
         entry.valorRecebido5 || 0,
         entry.mesFatura || "",
         entry.dataOficio || "",
-        "", // Col X (index 23)
-        (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 2) ? (entry.tipoConta2 || "ESTADUAL") : "", // Col Y (index 24) - CONTA
-        entry.unidadeSaude || "", // Col Z (index 25) - UNIDADES DE SAUDE 
-        (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 3) ? (entry.tipoConta3 || "ESTADUAL") : "", // Col AA (index 26)
-        (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 4) ? (entry.tipoConta4 || "ESTADUAL") : "", // Col AB (index 27)
-        (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 5) ? (entry.tipoConta5 || "ESTADUAL") : "", // Col AC (index 28)
-        new Date().toISOString(), // Timestamp (index 29)
       ];
 
       if (editingEntry?.rowIndex) {

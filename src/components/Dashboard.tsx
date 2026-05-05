@@ -64,13 +64,6 @@ export default function Dashboard({ entries, onEdit, onDelete, onRefresh, view =
               entry.valorRecebido5 || 0,
               entry.mesFatura || "",
               entry.dataOficio || "",
-              "", // Col X (index 23)
-              (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 2) ? (entry.tipoConta2 || "ESTADUAL") : "", // Col Y (index 24) - CONTA
-              entry.unidadeSaude || "", // Col Z (index 25) - UNIDADES DE SAUDE 
-              (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 3) ? (entry.tipoConta3 || "ESTADUAL") : "",
-              (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 4) ? (entry.tipoConta4 || "ESTADUAL") : "",
-              (entry.houveParcela === "Sim" && (entry.quantidadeParcelas || 1) >= 5) ? (entry.tipoConta5 || "ESTADUAL") : "",
-              new Date().toISOString(),
             ];
             await axios.post("/api/sheets/append", { values });
           }
