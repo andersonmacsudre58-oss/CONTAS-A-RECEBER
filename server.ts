@@ -39,21 +39,24 @@ async function startServer() {
   app.post("/api/sheets/append", async (req, res) => {
     try {
       if (!spreadsheetId) {
+        console.error("ERRO: ID da planilha não configurado.");
         return res.status(500).json({ error: "GOOGLE_SHEETS_ID não configurado nos Secrets." });
       }
 
       const { values } = req.body;
+      console.log("Recebendo dados para append:", values);
       
-      // Usar apenas "A:AB" para acomodar as colunas
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
         range: "A:AB",
         valueInputOption: "USER_ENTERED",
+        insertDataOption: "INSERT_ROWS",
         requestBody: {
           values: [values],
         },
       });
 
+      console.log("Sucesso ao anexar na planilha:", response.status);
       res.json({ success: true, data: response.data });
     } catch (error: any) {
       console.error("Sheets Append Error:", error.response?.data || error.message);
@@ -65,17 +68,20 @@ async function startServer() {
   app.get("/api/sheets/data", async (req, res) => {
     try {
       if (!spreadsheetId) {
+        console.error("ERRO: ID da planilha não configurado.");
         return res.status(500).json({ error: "GOOGLE_SHEETS_ID not configured" });
       }
 
+      console.log("Buscando dados da planilha...");
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: "A:AB",
       });
 
+      console.log("Dados recuperados com sucesso. Linhas:", response.data.values?.length || 0);
       res.json({ success: true, data: response.data.values || [] });
     } catch (error: any) {
-      console.error("Sheets Get Error:", error);
+      console.error("Sheets Get Error:", error.message);
       res.status(500).json({ error: error.message });
     }
   });
@@ -88,8 +94,9 @@ async function startServer() {
 
       const { row } = req.params;
       const { values } = req.body;
+      console.log(`Atualizando linha ${row} com valores:`, values);
 
-      await sheets.spreadsheets.values.update({
+      const response = await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `A${row}:AB${row}`,
         valueInputOption: "USER_ENTERED",
@@ -98,9 +105,10 @@ async function startServer() {
         },
       });
 
+      console.log(`Sucesso ao atualizar linha ${row}:`, response.status);
       res.json({ success: true });
     } catch (error: any) {
-      console.error("Sheets Update Error:", error);
+      console.error("Sheets Update Error:", error.response?.data || error.message);
       res.status(500).json({ error: error.message });
     }
   });

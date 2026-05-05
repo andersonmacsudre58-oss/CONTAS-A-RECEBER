@@ -12,6 +12,7 @@ export default function App() {
   const [editingEntry, setEditingEntry] = useState<FinancialEntry | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchEntries();
@@ -75,21 +76,23 @@ export default function App() {
 
   const handleFormSubmit = async (entry: FinancialEntry) => {
     try {
+      setLoading(true);
+      // Garantir que todos os valores numéricos sejam de fato números ou strings limpas
       const values = [
-        entry.processo,
-        entry.id,
+        entry.processo || "",
+        entry.id || "",
         entry.aditivos || "",
-        entry.taxa3,
-        entry.glosa,
-        entry.valorFaturado,
-        entry.dataRecebimento,
-        entry.valorRecebido,
-        entry.saldoAReceber,
-        entry.fonte,
-        entry.tipoConta,
-        entry.tipoCusteio,
-        entry.houveParcela,
-        entry.quantidadeParcelas || 1,
+        entry.taxa3 || "Não",
+        entry.glosa || 0,
+        entry.valorFaturado || 0,
+        entry.dataRecebimento || "",
+        entry.valorRecebido || 0,
+        entry.saldoAReceber || 0,
+        entry.fonte || "",
+        entry.tipoConta || "",
+        entry.tipoCusteio || "",
+        entry.houveParcela || "Não",
+        Number(entry.quantidadeParcelas) || 1,
         entry.dataRecebimento2 || "",
         entry.valorRecebido2 || 0,
         entry.tipoConta2 || "ESTADUAL",
@@ -106,19 +109,25 @@ export default function App() {
         entry.dataOficio || "",
       ];
 
+      console.log("Enviando para o servidor:", values);
+
       if (editingEntry?.rowIndex) {
         await axios.put(`/api/sheets/update/${editingEntry.rowIndex}`, { values });
+        alert("Lançamento atualizado com sucesso!");
         setEditingEntry(null);
       } else {
         await axios.post("/api/sheets/append", { values });
+        alert("Lançamento cadastrado com sucesso!");
       }
       
-      fetchEntries();
+      await fetchEntries();
       setActiveTab("dashboard");
     } catch (error: any) {
       console.error("Error submitting entry:", error);
-      const serverError = error.response?.data?.error || "Erro desconhecido";
-      alert(`Erro no Google Sheets: ${serverError}\n\nVerifique se o e-mail da Conta de Serviço foi adicionado como Editor na planilha.`);
+      const serverError = error.response?.data?.error || error.message || "Erro desconhecido";
+      alert(`ERRO DE CONEXÃO: ${serverError}\n\nPor favor, verifique se a planilha está acessível e se as credenciais estão corretas.`);
+    } finally {
+      setLoading(false);
     }
   };
 
