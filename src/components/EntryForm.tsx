@@ -38,11 +38,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     valorRecebido4: 0,
     dataRecebimento5: "",
     valorRecebido5: 0,
-    tipoConta2: "ESTADUAL",
-    tipoConta3: "ESTADUAL",
-    tipoConta4: "ESTADUAL",
-    tipoConta5: "ESTADUAL",
-    unidadeSaude: "",
   });
 
   // Update form when initialData changes (for editing)
@@ -118,11 +113,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         valorRecebido4: 0,
         dataRecebimento5: "",
         valorRecebido5: 0,
-        tipoConta2: "ESTADUAL",
-        tipoConta3: "ESTADUAL",
-        tipoConta4: "ESTADUAL",
-        tipoConta5: "ESTADUAL",
-        unidadeSaude: "",
       });
     } finally {
       setLoading(false);
@@ -345,19 +335,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           </select>
         </div>
 
-        {/* Unidade de Saúde */}
-        <div>
-          <label className={labelClasses}>Unidade de Saúde</label>
-          <input
-            type="text"
-            name="unidadeSaude"
-            value={formData.unidadeSaude}
-            onChange={handleChange}
-            className={inputClasses}
-            placeholder="Nome do Hospital / Unidade"
-          />
-        </div>
-
         {/* Tipo de Custeio */}
         <div>
           <label className={labelClasses}>Tipo de Custeio</label>
@@ -450,19 +427,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className={labelClasses}>Tipo de Conta</label>
-                      <select
-                        name="tipoConta2"
-                        value={formData.tipoConta2}
-                        onChange={handleChange}
-                        className={inputClasses}
-                      >
-                        {CONTA_OPTIONS.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
                 </div>
               )}
@@ -500,19 +464,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                           className={currencyInput}
                         />
                       </div>
-                    </div>
-                    <div>
-                      <label className={labelClasses}>Tipo de Conta</label>
-                      <select
-                        name="tipoConta3"
-                        value={formData.tipoConta3}
-                        onChange={handleChange}
-                        className={inputClasses}
-                      >
-                        {CONTA_OPTIONS.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
                     </div>
                   </div>
                 </div>
@@ -552,19 +503,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className={labelClasses}>Tipo de Conta</label>
-                      <select
-                        name="tipoConta4"
-                        value={formData.tipoConta4}
-                        onChange={handleChange}
-                        className={inputClasses}
-                      >
-                        {CONTA_OPTIONS.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
                 </div>
               )}
@@ -602,19 +540,6 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                           className={currencyInput}
                         />
                       </div>
-                    </div>
-                    <div>
-                      <label className={labelClasses}>Tipo de Conta</label>
-                      <select
-                        name="tipoConta5"
-                        value={formData.tipoConta5}
-                        onChange={handleChange}
-                        className={inputClasses}
-                      >
-                        {CONTA_OPTIONS.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
                     </div>
                   </div>
                 </div>
