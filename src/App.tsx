@@ -24,6 +24,14 @@ export default function App() {
         // Skip header row if it exists
         const rows = response.data.data;
         if (rows.length > 0) {
+          const parseSheetValue = (val: any): number => {
+            if (val === undefined || val === null || val === "") return 0;
+            if (typeof val === "number") return val;
+            // Remove dots and replace comma with dot for parseFloat
+            const clean = String(val).replace(/\./g, "").replace(",", ".");
+            return parseFloat(clean) || 0;
+          };
+
           const formatted = rows.slice(1)
             .map((row: any[], index: number) => ({
               rowIndex: index + 2,
@@ -31,27 +39,27 @@ export default function App() {
               id: row[1],
               aditivos: row[2] || "",
               taxa3: row[3],
-              glosa: parseFloat(row[4]) || 0,
-              valorFaturado: parseFloat(row[5]) || 0,
+              glosa: parseSheetValue(row[4]),
+              valorFaturado: parseSheetValue(row[5]),
               dataRecebimento: row[6],
-              valorRecebido: parseFloat(row[7]) || 0,
-              saldoAReceber: parseFloat(row[8]) || 0,
+              valorRecebido: parseSheetValue(row[7]),
+              saldoAReceber: parseSheetValue(row[8]),
               fonte: row[9],
               tipoConta: row[10],
               tipoCusteio: row[11],
               houveParcela: row[12],
               quantidadeParcelas: parseInt(row[13]) || 1,
               dataRecebimento2: row[14],
-              valorRecebido2: parseFloat(row[15]) || 0,
+              valorRecebido2: parseSheetValue(row[15]),
               tipoConta2: row[16] || "ESTADUAL",
               dataRecebimento3: row[17],
-              valorRecebido3: parseFloat(row[18]) || 0,
+              valorRecebido3: parseSheetValue(row[18]),
               tipoConta3: row[19] || "ESTADUAL",
               dataRecebimento4: row[20],
-              valorRecebido4: parseFloat(row[21]) || 0,
+              valorRecebido4: parseSheetValue(row[21]),
               tipoConta4: row[22] || "ESTADUAL",
               dataRecebimento5: row[23],
-              valorRecebido5: parseFloat(row[24]) || 0,
+              valorRecebido5: parseSheetValue(row[24]),
               tipoConta5: row[25] || "ESTADUAL",
               mesFatura: row[26] || "",
               dataOficio: row[27] || "",

@@ -13,31 +13,45 @@ interface EntryFormProps {
 
 export default function EntryForm({ onSubmit, initialData, onCancel }: EntryFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FinancialEntry>(initialData || {
+  const formatInitialData = (data: FinancialEntry): FinancialEntry => {
+    return {
+      ...data,
+      valorFaturado: formatDisplay(data.valorFaturado),
+      glosa: formatDisplay(data.glosa),
+      valorRecebido: formatDisplay(data.valorRecebido),
+      valorRecebido2: formatDisplay(data.valorRecebido2),
+      valorRecebido3: formatDisplay(data.valorRecebido3),
+      valorRecebido4: formatDisplay(data.valorRecebido4),
+      valorRecebido5: formatDisplay(data.valorRecebido5),
+      saldoAReceber: formatDisplay(data.saldoAReceber),
+    };
+  };
+
+  const [formData, setFormData] = useState<FinancialEntry>(initialData ? formatInitialData(initialData) : {
     processo: "",
     id: "",
     aditivos: "",
     mesFatura: MESES_OPTIONS[new Date().getMonth()],
     dataOficio: "",
     taxa3: "Não",
-    glosa: 0,
-    valorFaturado: 0,
+    glosa: "0,00",
+    valorFaturado: "0,00",
     dataRecebimento: new Date().toISOString().split("T")[0],
-    valorRecebido: 0,
-    saldoAReceber: 0,
+    valorRecebido: "0,00",
+    saldoAReceber: "0,00",
     fonte: "SES",
     tipoConta: "ESTADUAL",
     tipoCusteio: "CUSTEIO REGULAR",
     houveParcela: "Não",
     quantidadeParcelas: 1,
     dataRecebimento2: "",
-    valorRecebido2: 0,
+    valorRecebido2: "0,00",
     dataRecebimento3: "",
-    valorRecebido3: 0,
+    valorRecebido3: "0,00",
     dataRecebimento4: "",
-    valorRecebido4: 0,
+    valorRecebido4: "0,00",
     dataRecebimento5: "",
-    valorRecebido5: 0,
+    valorRecebido5: "0,00",
     tipoConta2: "ESTADUAL",
     tipoConta3: "ESTADUAL",
     tipoConta4: "ESTADUAL",
@@ -47,24 +61,40 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
   // Update form when initialData changes (for editing)
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData(formatInitialData(initialData));
     }
   }, [initialData]);
 
+  const parseValue = (val: any): number => {
+    if (val === undefined || val === null || val === "") return 0;
+    if (typeof val === "number") return val;
+    // Remove todos os pontos (milhares) e substitui a vírgula por ponto (decimal)
+    const clean = String(val).replace(/\./g, "").replace(",", ".");
+    return parseFloat(clean) || 0;
+  };
+
+  const formatDisplay = (val: any): string => {
+    const num = parseValue(val);
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  };
+
   // Real-time calculation of Saldo a Receber
   useEffect(() => {
-    const faturado = formData.valorFaturado || 0;
-    const glosa = formData.glosa || 0;
-    const rec1 = formData.valorRecebido || 0;
-    const rec2 = formData.houveParcela === "Sim" ? (formData.valorRecebido2 || 0) : 0;
-    const rec3 = formData.houveParcela === "Sim" ? (formData.valorRecebido3 || 0) : 0;
-    const rec4 = formData.houveParcela === "Sim" ? (formData.valorRecebido4 || 0) : 0;
-    const rec5 = formData.houveParcela === "Sim" ? (formData.valorRecebido5 || 0) : 0;
+    const faturado = parseValue(formData.valorFaturado);
+    const glosa = parseValue(formData.glosa);
+    const rec1 = parseValue(formData.valorRecebido);
+    const rec2 = formData.houveParcela === "Sim" ? parseValue(formData.valorRecebido2) : 0;
+    const rec3 = formData.houveParcela === "Sim" ? parseValue(formData.valorRecebido3) : 0;
+    const rec4 = formData.houveParcela === "Sim" ? parseValue(formData.valorRecebido4) : 0;
+    const rec5 = formData.houveParcela === "Sim" ? parseValue(formData.valorRecebido5) : 0;
 
     const totalRecebido = rec1 + rec2 + rec3 + rec4 + rec5;
-    const saldo = faturado - glosa - totalRecebido;
+    const saldo = Number((faturado - glosa - totalRecebido).toFixed(2));
 
-    if (formData.saldoAReceber !== saldo) {
+    if (parseValue(formData.saldoAReceber) !== saldo) {
       setFormData(prev => ({ ...prev, saldoAReceber: saldo }));
     }
   }, [
@@ -78,19 +108,56 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     formData.houveParcela
   ]);
 
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Permitir dígitos, pontos (milhares) e UMA vírgula (decimal)
+    // Regex: permite números, múltiplos pontos e uma vírgula opcional
+    if (value === "" || /^-?[\d.]*,?\d*$/.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (value !== "") {
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatDisplay(value)
+      }));
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseFloat(value) || 0 : value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
+    // Convert string inputs back to numbers for submission
+    const submissionData: FinancialEntry = {
+      ...formData,
+      valorFaturado: parseValue(formData.valorFaturado),
+      glosa: parseValue(formData.glosa),
+      valorRecebido: parseValue(formData.valorRecebido),
+      valorRecebido2: parseValue(formData.valorRecebido2),
+      valorRecebido3: parseValue(formData.valorRecebido3),
+      valorRecebido4: parseValue(formData.valorRecebido4),
+      valorRecebido5: parseValue(formData.valorRecebido5),
+      saldoAReceber: parseValue(formData.saldoAReceber),
+    };
+
     try {
-      await onSubmit(formData);
+      await onSubmit(submissionData);
       // Reset form or show success
       setFormData({
         processo: "",
@@ -99,24 +166,24 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         mesFatura: MESES_OPTIONS[new Date().getMonth()],
         dataOficio: "",
         taxa3: "Não",
-        glosa: 0,
-        valorFaturado: 0,
+        glosa: "0,00",
+        valorFaturado: "0,00",
         dataRecebimento: new Date().toISOString().split("T")[0],
-        valorRecebido: 0,
-        saldoAReceber: 0,
+        valorRecebido: "0,00",
+        saldoAReceber: "0,00",
         fonte: "SES",
         tipoConta: "ESTADUAL",
         tipoCusteio: "CUSTEIO REGULAR",
         houveParcela: "Não",
         quantidadeParcelas: 1,
         dataRecebimento2: "",
-        valorRecebido2: 0,
+        valorRecebido2: "0,00",
         dataRecebimento3: "",
-        valorRecebido3: 0,
+        valorRecebido3: "0,00",
         dataRecebimento4: "",
-        valorRecebido4: 0,
+        valorRecebido4: "0,00",
         dataRecebimento5: "",
-        valorRecebido5: 0,
+        valorRecebido5: "0,00",
         tipoConta2: "ESTADUAL",
         tipoConta3: "ESTADUAL",
         tipoConta4: "ESTADUAL",
@@ -232,12 +299,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           <div className={currencyInputContainer}>
             <span className={currencyPrefix}>R$</span>
             <input
-              type="number"
-              step="0.01"
+              type="text"
               name="valorFaturado"
               value={formData.valorFaturado}
-              onChange={handleChange}
+              onChange={handleNumberChange}
+              onBlur={handleBlur}
               className={currencyInput}
+              placeholder="0,00"
               required
             />
           </div>
@@ -268,12 +336,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           <div className={currencyInputContainer}>
             <span className={currencyPrefix}>R$</span>
             <input
-              type="number"
-              step="0.01"
+              type="text"
               name="glosa"
               value={formData.glosa}
-              onChange={handleChange}
+              onChange={handleNumberChange}
+              onBlur={handleBlur}
               className={currencyInput}
+              placeholder="0,00"
             />
           </div>
         </div>
@@ -299,12 +368,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           <div className={currencyInputContainer}>
             <span className={currencyPrefix}>R$</span>
             <input
-              type="number"
-              step="0.01"
+              type="text"
               name="valorRecebido"
               value={formData.valorRecebido}
-              onChange={handleChange}
+              onChange={handleNumberChange}
+              onBlur={handleBlur}
               className={currencyInput}
+              placeholder="0,00"
             />
           </div>
         </div>
@@ -315,10 +385,9 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
           <div className={currencyInputContainer}>
             <span className={currencyPrefix}>R$</span>
             <input
-              type="number"
-              step="0.01"
+              type="text"
               name="saldoAReceber"
-              value={formData.saldoAReceber}
+              value={typeof formData.saldoAReceber === 'number' ? formatDisplay(formData.saldoAReceber) : formData.saldoAReceber}
               className={cn(currencyInput, "bg-blue-50/50 font-bold text-blue-700 pointer-events-none")}
               readOnly
             />
@@ -426,12 +495,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                       <div className={currencyInputContainer}>
                         <span className={currencyPrefix}>R$</span>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
                           name="valorRecebido2"
                           value={formData.valorRecebido2}
-                          onChange={handleChange}
+                          onChange={handleNumberChange}
+                          onBlur={handleBlur}
                           className={currencyInput}
+                          placeholder="0,00"
                         />
                       </div>
                     </div>
@@ -475,12 +545,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                       <div className={currencyInputContainer}>
                         <span className={currencyPrefix}>R$</span>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
                           name="valorRecebido3"
                           value={formData.valorRecebido3}
-                          onChange={handleChange}
+                          onChange={handleNumberChange}
+                          onBlur={handleBlur}
                           className={currencyInput}
+                          placeholder="0,00"
                         />
                       </div>
                     </div>
@@ -526,12 +597,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                       <div className={currencyInputContainer}>
                         <span className={currencyPrefix}>R$</span>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
                           name="valorRecebido4"
                           value={formData.valorRecebido4}
-                          onChange={handleChange}
+                          onChange={handleNumberChange}
+                          onBlur={handleBlur}
                           className={currencyInput}
+                          placeholder="0,00"
                         />
                       </div>
                     </div>
@@ -577,12 +649,13 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                       <div className={currencyInputContainer}>
                         <span className={currencyPrefix}>R$</span>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
                           name="valorRecebido5"
                           value={formData.valorRecebido5}
-                          onChange={handleChange}
+                          onChange={handleNumberChange}
+                          onBlur={handleBlur}
                           className={currencyInput}
+                          placeholder="0,00"
                         />
                       </div>
                     </div>
