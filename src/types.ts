@@ -24,6 +24,10 @@ export interface FinancialEntry {
   valorRecebido4?: number;
   dataRecebimento5?: string;
   valorRecebido5?: number;
+  tipoConta2?: string;
+  tipoConta3?: string;
+  tipoConta4?: string;
+  tipoConta5?: string;
 }
 
 export const SIM_NAO_OPTIONS = ["Não", "Sim"] as const;

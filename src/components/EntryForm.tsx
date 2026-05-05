@@ -38,6 +38,10 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     valorRecebido4: 0,
     dataRecebimento5: "",
     valorRecebido5: 0,
+    tipoConta2: "ESTADUAL",
+    tipoConta3: "ESTADUAL",
+    tipoConta4: "ESTADUAL",
+    tipoConta5: "ESTADUAL",
   });
 
   // Update form when initialData changes (for editing)
@@ -113,6 +117,10 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         valorRecebido4: 0,
         dataRecebimento5: "",
         valorRecebido5: 0,
+        tipoConta2: "ESTADUAL",
+        tipoConta3: "ESTADUAL",
+        tipoConta4: "ESTADUAL",
+        tipoConta5: "ESTADUAL",
       });
     } finally {
       setLoading(false);
@@ -427,11 +435,22 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                         />
                       </div>
                     </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta2"
+                        value={formData.tipoConta2}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
-              
-              {/* Parcela 3 */}
               {Number(formData.quantidadeParcelas) >= 3 && (
                 <div className="group relative rounded-2xl border border-slate-100 bg-slate-50/30 p-5 transition-all hover:bg-white hover:shadow-md hover:shadow-slate-200/50">
                   <div className="mb-4 flex items-center justify-between border-b border-slate-100/50 pb-3">
@@ -464,6 +483,19 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                           className={currencyInput}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta3"
+                        value={formData.tipoConta3}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -503,6 +535,19 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                         />
                       </div>
                     </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta4"
+                        value={formData.tipoConta4}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -540,6 +585,19 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
                           className={currencyInput}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tipo de Conta</label>
+                      <select
+                        name="tipoConta5"
+                        value={formData.tipoConta5}
+                        onChange={handleChange}
+                        className={inputClasses}
+                      >
+                        {CONTA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
