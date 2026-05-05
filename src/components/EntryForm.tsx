@@ -42,6 +42,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
     tipoConta3: "ESTADUAL",
     tipoConta4: "ESTADUAL",
     tipoConta5: "ESTADUAL",
+    unidadeSaude: "",
   });
 
   // Update form when initialData changes (for editing)
@@ -121,6 +122,7 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
         tipoConta3: "ESTADUAL",
         tipoConta4: "ESTADUAL",
         tipoConta5: "ESTADUAL",
+        unidadeSaude: "",
       });
     } finally {
       setLoading(false);
@@ -341,6 +343,19 @@ export default function EntryForm({ onSubmit, initialData, onCancel }: EntryForm
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
+        </div>
+
+        {/* Unidade de Saúde */}
+        <div>
+          <label className={labelClasses}>Unidade de Saúde</label>
+          <input
+            type="text"
+            name="unidadeSaude"
+            value={formData.unidadeSaude}
+            onChange={handleChange}
+            className={inputClasses}
+            placeholder="Nome do Hospital / Unidade"
+          />
         </div>
 
         {/* Tipo de Custeio */}

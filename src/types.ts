@@ -28,6 +28,7 @@ export interface FinancialEntry {
   tipoConta3?: string;
   tipoConta4?: string;
   tipoConta5?: string;
+  unidadeSaude?: string;
 }
 
 export const SIM_NAO_OPTIONS = ["Não", "Sim"] as const;
